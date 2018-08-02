@@ -1,8 +1,10 @@
 
 ## konsolidieren
 
-- konsolidieren: Tools, Code, Diss/code pre
-- links in Tools ordner -> in docstrings von platzhalter-funktionen
+- konsolidieren
+    - Code: helper, topic modeling, van halteren, word embedding
+    - Diss/code pre: hgfc, met-clf, met-cluster, met-sampler
+    - Tools: platzhalter-funktionen, links in docstrings
 
 ## kategorien
 
