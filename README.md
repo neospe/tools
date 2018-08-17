@@ -13,10 +13,14 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
 ## docset workflow
 
 - in bash + python 2.7: _source activate py2_
-- pydoctor (https://launchpad.net/pydoctor): _pydoctor --add-package path-to-package_
-    - open template: ~/miniconda3/envs/py2/lib/python2.7/site-packages/pydoctor/templates/common.html
-    - remove div id="showPrivate"
-- doc2dash (https://pypi.org/project/doc2dash): _doc2dash path-to-apidocs_
+- pydoctor (https://launchpad.net/pydoctor):
+    - install: _pip install pydoctor_
+        - edit template: ~/miniconda3/envs/py2/lib/python2.7/site-packages/pydoctor/templates/common.html
+            - remove div id="showPrivate"
+    - _pydoctor --add-package path-to-package_
+- doc2dash (https://pypi.org/project/doc2dash):
+    - install: _conda install --channel "conda-forge" doc2dash_
+    - _doc2dash path-to-apidocs_
 
 ## module
 

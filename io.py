@@ -19,9 +19,10 @@ def query_df(df, column, match=[value1, value2]):
 	"""
 	aka reader.py
 	
-	df - dataframe
-	column - column to select
-	match - list of one or more values to match (optional)
+	Keyword arguments:
+	df -- dataframe
+	column -- column to select
+	match -- list of one or more values to match (optional)
 
 	returns dataframe
 	"""
@@ -32,9 +33,9 @@ def query_xml(path, xpath=[path1, path2], match=[]):
 	"""
 	aka gutenberg_xml_year.py
 
-	path - path to directory
-	xpath - list of one or more xpaths to execute
-	match - list of one or more values to match (optional)
+	path -- path to directory
+	xpath -- list of one or more xpaths to execute
+	match -- list of one or more values to match (optional)
 
 	returns dataframe
 	"""
@@ -50,5 +51,5 @@ def query_dof_dtree(df, match):
 	return
 
 def nx_graph_from_biadjacency_pandas_df(df):
-	
+
 	return
