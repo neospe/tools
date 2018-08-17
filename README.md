@@ -1,16 +1,14 @@
 
 # tools
 
-python tools package
+eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-genützte lösungswege dienen soll.
+
+- als dash docset: https://pypi.org/project/doc2dash/
 
 ## todo
 
-- konsolidieren: in funktionen verkapseln + benennen + docstrings schreiben
-- quellen
-    - Code/code pre: helper, topic modeling, van halteren, word embedding
-    - Diss/code pre: met-cluster, met-sampler
-    - Code/fundus
-- neue komponenten **TODO**
+- docstrings schreiben
+- neue komponenten
     - export funktion: pickle alternative + state saving mechanismus (z.b. parameter/variablen -> json)
     - platzhalter-funktionen aus code fundus: docstrings inkl. beschreibung + links
 
@@ -59,6 +57,12 @@ python tools package
         - met-sampler/sample.py: write_tsv, stratified random sampler for sentences
         - met-sampler/collect.py: substring_match, sent_lookup (levenshtein), sent_search
         - met-sampler/eval.py: plot_candidate_types, count_tokens, plot_met_types, plot_met_annotations, calculate_agreement_annotations
+
+## quellen
+
+- Code/code pre: helper, topic modeling, van halteren, word embedding
+- Diss/code pre: met-cluster, met-sampler
+- Code/fundus
 
 ## package struktur
 
