@@ -6,13 +6,13 @@ python tools package
 ## todo
 
 - konsolidieren: in funktionen verkapseln + benennen + docstrings schreiben
-- neue komponenten:
-    - objekt-orientiertes interface zum package: TextObjekt, KorpusObjekt
-    - export funktion: pickle alternative + state saving mechanismus (z.b. parameter, variablen,.. -> json)
 - quellen
     - Code/code pre: helper, topic modeling, van halteren, word embedding
     - Diss/code pre: met-cluster, met-sampler
-    - Code/fundus -> platzhalter-funktionen, docstrings inkl. beschreibung + links 
+    - Code/fundus
+- neue komponenten **TODO**
+    - export funktion: pickle alternative + state saving mechanismus (z.b. parameter/variablen -> json)
+    - platzhalter-funktionen aus code fundus: docstrings inkl. beschreibung + links
 
 ## module
 
@@ -27,7 +27,6 @@ python tools package
     - met-cluster/cluster.py, nx_graph_from_biadjacency_pandas_df: df -> nx graph
 - proc
     - helper/count_tok.py: dof dir -> int
-    - met-cluster/corpus.py, count_tokens: dof dir -> int
     - met-cluster/extract.py, most_frequent_nouns: dof dir -> list
     - helper/wordsplitter_dict.py: dof dir -> dict
     - met-cluster/features.py, count_features: lists (nouns, feats) -> np array, dicts (nouns, feats)
@@ -69,7 +68,7 @@ python tools package
 tools/
    __init__.py
    io.py
+   misc.py
    proc.py
    vis.py
-   misc.py
 ```

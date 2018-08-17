@@ -1,2 +1,3 @@
 
-from tools import misc
+def count_tokens(path):
+	return

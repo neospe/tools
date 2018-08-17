@@ -1,2 +1,3 @@
 
-from tools import misc
+def plot_matrix(X, outfile):
+	return
