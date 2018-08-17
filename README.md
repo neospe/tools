@@ -3,11 +3,13 @@
 
 eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-genützte lösungswege dienen soll.
 
-- als dash docset: https://pypi.org/project/doc2dash/
-
 ## todo
 
 - docstrings schreiben
+- docset generieren 
+    - in bash: _source activate py2_
+    - pydoctor (https://launchpad.net/pydoctor): _pydoctor --add-package <path-to-package>_
+    - doc2dash (https://pypi.org/project/doc2dash): _doc2dash <path-to-apidocs>_
 - neue komponenten
     - export funktion: pickle alternative + state saving mechanismus (z.b. parameter/variablen -> json)
     - platzhalter-funktionen aus code fundus: docstrings inkl. beschreibung + links

@@ -1,14 +1,18 @@
 
 def save_matrix(path, X, nouns_dict, feats_dict):
+
     return
 
 def load_matrix(path):
+
     return
 
 def clean_string(token):
+
 	return
 
 def strip_xml(path):
+
 	return
 
 def query_df(df, column, match=[value1, value2]):
@@ -21,6 +25,7 @@ def query_df(df, column, match=[value1, value2]):
 
 	returns dataframe
 	"""
+
 	return
 
 def query_xml(path, xpath=[path1, path2], match=[]):
@@ -33,13 +38,17 @@ def query_xml(path, xpath=[path1, path2], match=[]):
 
 	returns dataframe
 	"""
+
 	return
 
 def query_dof_ctree(df, match):
+
 	return
 
 def query_dof_dtree(df, match):
+
 	return
 
 def nx_graph_from_biadjacency_pandas_df(df):
+	
 	return
