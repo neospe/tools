@@ -1,5 +1,5 @@
 
-# tools
+# about
 
 eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-genützte lösungswege dienen soll.
 
