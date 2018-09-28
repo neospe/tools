@@ -1,5 +1,5 @@
 """
-visualisation module
+visualisation
 """
 
 def plot_matrix(X, outfile):

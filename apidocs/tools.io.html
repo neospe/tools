@@ -38,11 +38,79 @@
       </div>
 
       <div class="moduleDocstring">
-        <div class="undocumented">Undocumented</div>
+        <div><p>input/output</p><table class="fieldTable"></table></div>
       </div>
 
       <div id="splitTables">
-        
+        <table class="children sortable" id="id3">
+  
+  <tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#save_pkl" data-type="Function" class="code">save_pkl</a></td>
+    <td><span>save objects</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#load_pkl" data-type="Function" class="code">load_pkl</a></td>
+    <td><span>load objects</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#save_json" data-type="Function" class="code">save_json</a></td>
+    <td><span>save objects to json file</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#load_json" data-type="Function" class="code">load_json</a></td>
+    <td><span>load objects from json file</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#strip_symbols" data-type="Function" class="code">strip_symbols</a></td>
+    <td><span>remove special characters from string</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#strip_xml" data-type="Function" class="code">strip_xml</a></td>
+    <td><span>export text content from xml file</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#query_xml" data-type="Function" class="code">query_xml</a></td>
+    <td><span>query xml document</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#query_df" data-type="Function" class="code">query_df</a></td>
+    <td><span>query dataframe</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#ctree_from_df" data-type="Function" class="code">ctree_from_df</a></td>
+    <td><span>extract constituency tree from sentence df</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#query_ctree" data-type="Function" class="code">query_ctree</a></td>
+    <td><span>query constituency tree</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#dtree_from_df" data-type="Function" class="code">dtree_from_df</a></td>
+    <td><span>extract dependency tree from sentence df</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#query_dtree" data-type="Function" class="code">query_dtree</a></td>
+    <td><span>query dependency tree</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.io.html#graph_from_biadjacency_df" data-type="Function" class="code">graph_from_biadjacency_df</a></td>
+    <td><span>construct bipartite graph from biadjacency matrix</span></td>
+  </tr>
+</table>
         
 
           
@@ -50,11 +118,322 @@
 
       <div id="childList">
 
-        
+        <div class="basefunction">
+  
+  <a name="tools.io.save_pkl">
+    
+  </a>
+  <a name="save_pkl">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    save_pkl(path_or_buf, objects):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>save objects</p>
+<ul>
+  <li>
+    example:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>save_pkl(<span class="py-string">"file.pkl"</span>, [obj1, obj2, obj3])</pre>
+  </li>
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">path_or_buf</td><td>path or file object</td></tr><tr><td></td><td class="fieldArg">objects</td><td>list of objects</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.load_pkl">
+    
+  </a>
+  <a name="load_pkl">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    load_pkl(path_or_buf):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>load objects</p>
+<ul>
+  <li>
+    example:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>[obj1, obj2, obj3] = load_pkl(<span class="py-string">"file.pkl"</span>)</pre>
+  </li>
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">path_or_buf</td><td>path or file object</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">list of objects</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.save_json">
+    
+  </a>
+  <a name="save_json">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    save_json(path_or_buf, objects):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>save objects to json file</p>
+<p>supports primitives, pandas and numpy objects, custom classes (cf. 
+https://json-tricks.readthedocs.io/en/latest)</p>
+<p>no nested complex types</p>
+<ul>
+  <li>
+    example:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>save_json(<span class="py-string">"file.json"</span>, [obj1, obj2, obj3])</pre>
+  </li>
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">path_or_buf</td><td>path or file object</td></tr><tr><td></td><td class="fieldArg">objects</td><td>list of objects</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.load_json">
+    
+  </a>
+  <a name="load_json">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    load_json(path_or_buf):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>load objects from json file</p>
+<ul>
+  <li>
+    example:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>[obj1, obj2, obj3] = load_json(<span class="py-string">"file.json"</span>)</pre>
+  </li>
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">path_or_buf</td><td>path or file object</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">list of objects</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.strip_symbols">
+    
+  </a>
+  <a name="strip_symbols">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    strip_symbols(string):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>remove special characters from string</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">string</td><td>string to modify</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">string</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.strip_xml">
+    
+  </a>
+  <a name="strip_xml">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    strip_xml(path):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>export text content from xml file</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">path</td><td>path to file</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.query_xml">
+    
+  </a>
+  <a name="query_xml">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    query_xml(path, xpath, out_type='element'):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>query xml document</p>
+<p>returns a list of elements (cf. https://lxml.de/xpathxslt.html) or 
+strings</p>
+<ul>
+  <li>
+    example:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>query_xml(<span class="py-string">"mytext.xml"</span>, <span class="py-string">"//head/meta[@name='year']"</span>)</pre>
+  </li>
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">path</td><td>path to file</td></tr><tr><td></td><td class="fieldArg">xpath</td><td>xpath</td></tr><tr><td></td><td class="fieldArg">out_type</td><td>"element", "text" or "attrib" (default: 
+"element")</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">list</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.query_df">
+    
+  </a>
+  <a name="query_df">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    query_df(df, column, values):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>query dataframe</p>
+<ul>
+  <li>
+    example:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>query_df(df, <span class="py-string">"CPOS"</span>, [<span class="py-string">"ADJ"</span>, <span class="py-string">"NN"</span>])</pre>
+  </li>
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">df</td><td>dataframe</td></tr><tr><td></td><td class="fieldArg">column</td><td>target column</td></tr><tr><td></td><td class="fieldArg">values</td><td>list of one or more values to match</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">dataframe</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.ctree_from_df">
+    
+  </a>
+  <a name="ctree_from_df">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    ctree_from_df(df):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>extract constituency tree from sentence df</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">df</td><td>dataframe for one sentence (CoNLL 2009/DOF)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">nltk.tree.ParentedTree</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.query_ctree">
+    
+  </a>
+  <a name="query_ctree">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    query_ctree(tree, values):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>query constituency tree</p>
+<p>matches labels and leaves, returns list of subtrees</p>
+<ul>
+  <li>
+    example:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>query_ctree(tree, [<span class="py-string">"NP"</span>, <span class="py-string">"Effi"</span>])</pre>
+  </li>
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">tree</td><td>ParentedTree for one sentence</td></tr><tr><td></td><td class="fieldArg">values</td><td>list of one or more values to match</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">list</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.dtree_from_df">
+    
+  </a>
+  <a name="dtree_from_df">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    dtree_from_df(df):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>extract dependency tree from sentence df</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">df</td><td>dataframe for one sentence (CoNLL 2009/DOF)</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">nx.DiGraph</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.query_dtree">
+    
+  </a>
+  <a name="query_dtree">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    query_dtree(tree, values):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>query dependency tree</p>
+<p>matches labels and leaves, returns list of nodes</p>
+<ul>
+  <li>
+    example:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>query_dtree(tree, [<span class="py-string">"NK"</span>, <span class="py-string">"von"</span>])</pre>
+  </li>
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">tree</td><td>DiGraph for one sentence</td></tr><tr><td></td><td class="fieldArg">values</td><td>list of one or more values to match</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">list</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.io.graph_from_biadjacency_df">
+    
+  </a>
+  <a name="graph_from_biadjacency_df">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    graph_from_biadjacency_df(df):
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>construct bipartite graph from biadjacency matrix</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">df</td><td>biadjacency matrix as dataframe</td></tr><tr class="fieldStart"><td class="fieldName">Returns</td><td colspan="2">nx.Graph</td></tr></table></div>
+  </div>
+</div>
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-08-18 11:49:05.
+        <a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-09-28 11:07:14.
       </address>
 
     </div>

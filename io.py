@@ -1,110 +1,294 @@
 """
-input-output module
+input/output
 """
 
 import pandas as pd
+from re import sub
+from sklearn.externals import joblib
+from json_tricks.np import dump, load
+from json_tricks.encoders import pandas_encode, numpy_encode
+from nltk.tree import ParentedTree
+from nltk.corpus.reader.xmldocs import XMLCorpusView
+from lxml import etree
+from networkx import Graph, DiGraph
 
-def save_matrix(path, X, nouns_dict, feats_dict):
-    print('\nsaving..', end=' ')
-    now = time.time()
-    dump(nouns_dict, result_path+'/nouns_dict.pkl')
 
-    if feats_dict != None:
-        dump(feats_dict, result_path+'/feats_dict.pkl')
-        X_df = pd.DataFrame(data=X, index=sorted(feats_dict.keys()), columns=sorted(nouns_dict.keys()), dtype='float16')
-    else:
-        X_df = pd.DataFrame(data=X, index=sorted(nouns_dict.keys()), columns=sorted(nouns_dict.keys()), dtype='float64')
+def save_pkl(path_or_buf, objects):
+	"""
+	save objects
+	
+		- example:
+		
+			>>> save_pkl("file.pkl", [obj1, obj2, obj3])
 
-    X_df.to_csv(path, '\t')
-    print('done:', path, X_df.shape, 'in', time.time()-now , 'sec\n')
+	@param path_or_buf: path or file object
+	@param objects: list of objects
+	"""
+	joblib.dump(objects, path_or_buf, compress=1)
 
-def load_matrix(path):
-    print('\nloading..', end=' ')
-    now = time.time()
 
-    nouns_dict = load(result_path+'/nouns_dict.pkl')
-    feats_dict = load(result_path+'/feats_dict.pkl')
+def load_pkl(path_or_buf):
+	"""
+	load objects
+	
+		- example:
+		
+			>>> [obj1, obj2, obj3] = load_pkl("file.pkl")
 
-    X_df = pd.read_csv(path, sep='\t', index_col=0)
-    X = X_df.as_matrix()
+	@param path_or_buf: path or file object
+	@return: list of objects
+	"""
+	return joblib.load(path_or_buf)
 
-    print('done:', path, X_df.shape, 'in', time.time()-now , 'sec\n')
 
-    return X, nouns_dict, feats_dict
+def save_json(path_or_buf, objects):
+	"""
+	save objects to json file
 
-def clean_string(token):
-    strip_chars = '_–-—«»›‹/\§!?.,"„“% '
+	supports primitives, pandas and numpy objects, custom classes (cf. https://json-tricks.readthedocs.io/en/latest)
 
-    if isinstance(token, str):
-        new = token.strip(strip_chars).lower()
+	no nested complex types
+	
+		- example:
+		
+			>>> save_json("file.json", [obj1, obj2, obj3])
 
-        if '|' in new:
-            new = new.split('|')[0]     # treetagger format
+	@param path_or_buf: path or file object
+	@param objects: list of objects
+	"""
+	dump(objects, path_or_buf, obj_encoders=[pandas_encode(content), numpy_encode(content)], allow_nan=True)
 
-        if len(new) > 1 and '&' not in new:
-            if re.match("^[a-z_]*$", new):
-                return new
-            else:
-                return None
+
+def load_json(path_or_buf):
+	"""
+	load objects from json file
+	
+		- example:
+		
+			>>> [obj1, obj2, obj3] = load_json("file.json")
+
+	@param path_or_buf: path or file object
+	@return: list of objects
+	"""
+	return load(path_or_buf)
+
+
+def strip_symbols(string):
+	"""
+	remove special characters from string
+
+	@param string: string to modify
+	@return: string
+	"""
+	return sub('[\W_]+', '', string)
+
 
 def strip_xml(path):
-	from nltk.corpus.reader.xmldocs import XMLCorpusView
+	"""
+	export text content from xml file
 	
-	view = XMLCorpusView(path,'.*/text/body/div')
-	iter = view.iterate_from(0)
-	f = open(path+'.txt', 'w')
+	@param path: path to file
+	"""
+	result = XMLCorpusView(path,".*/text/body/div")
+	result_iterator = result.iterate_from(0)
+	
+	f = open(path+".txt", "w")
 
-	for entry in iter:
-	    f.write(str(entry[0].text) + ' ' + str(entry[1].text) + '\n\n')
+	for element in result_iterator:
+	    f.write(str(element[0].text) + " " + str(element[1].text) + "\n\n")
 
 	f.close()
 
-def query_df(df, column, match=[value1, value2]):
+
+def query_xml(path, xpath, out_type="element"):
 	"""
-	aka reader.py
+	query xml document
+
+	returns a list of elements (cf. https://lxml.de/xpathxslt.html) or strings
 	
-	Args:
-	df -- dataframe
-	column -- column to select
-	match -- list of one or more values to match (optional)
+		- example:
+		
+			>>> query_xml("mytext.xml", "//head/meta[@name='year']")
 
-	Returns:
-	df -- ataframe
-
-	Examples:
-	>>> query_df(df, "CPOS", ["ADJ","NN"])
+	@param path: path to file
+	@param xpath: xpath
+	@param out_type: "element", "text" or "attrib" (default: "element")
+	@return: list
 	"""
-	groups = df.groupby(column)
-	result = pd.DataFrame()
-	for m in match:
-		result = pd.concat([result, groups.get_group(m)])
+	with open(path, 'r', encoding='latin1') as f:
+		doc = etree.parse(f)
 
-	return result
+	if out_type == "text":
+		return [result.text for result in doc.xpath(xpath)]
+	elif out_type == "attrib":
+		return [result.attrib['content'] for result in doc.xpath(xpath)]
+	else:
+		return doc.xpath(xpath)
 
-def query_xml(path, xpath=[path1, path2], match=[]):
+
+def query_df(df, column, values):
 	"""
-	aka gutenberg_xml_year.py
+	query dataframe
+	
+		- example:
+			
+			>>> query_df(df, "CPOS", ["ADJ", "NN"])
 
-	path -- path to directory
-	xpath -- list of one or more xpaths to execute
-	match -- list of one or more values to match (optional)
-
-	returns dataframe
+	@param df: dataframe
+	@param column: target column
+	@param values: list of one or more values to match
+	@return: dataframe
 	"""
+	return df.loc[df[column].isin(values)]
 
-	return
 
-def query_dof_ctree(df, match):
+def ctree_from_df(df):
+	"""
+	extract constituency tree from sentence df
+	
+	@param df: dataframe for one sentence (CoNLL 2009/DOF)
+	@return: nltk.tree.ParentedTree
+	"""
+	delim = '#'          # token#token_id delimiter for use inside tree objects
+	sent_string = ""
 
-	return
+	for row in df.iterrows():
+		tok_id = str(row[0])                                            # current token id
+		tok = row[1].get("Token")                                       # current token
+		tree_frag = row[1].get("SyntaxTree").strip("*")                 # current syntax tree fragment
 
-def query_dof_dtree(df, match):
+		"""
+		if "*)" in sent_string:                                         # TODO: possible bug in csv tree writer
+			if tmp_string:
+				tmp_string2 = sent_string.replace("*)", "")             # we ran into "*)" a second time
+				sent_string = tmp_string2
+			else:
+				tmp_string = sent_string.replace("*)", "")
+				sent_string = tmp_string
+		"""
 
-	return
+		if tree_frag.startswith("("):                                   # reconstruct tree + save token id
+			sent_string += tree_frag + " " + tok + delim + tok_id + " "  # beginning of fragment
+		elif not ")" in tree_frag:
+			sent_string += tree_frag + " " + tok + delim + tok_id + " "  # middle
+		else:                                                           # end
+			"""
+			if tmp_string:                                              # TODO: possible bug in csv tree writer
+				sent_string += " " + tok + delim + tok_id + tree_frag + ") "
+				tmp_string = ""
+			elif tmp_string2:
+				sent_string += " " + tok + delim + tok_id + tree_frag + ")) "
+				tmp_string2 = ""
+			else:
+			"""
+			sent_string += " " + tok + delim + tok_id + tree_frag + " "
 
-def nx_graph_from_biadjacency_pandas_df(df):
+	return ParentedTree.fromstring(sent_string)
 
-	return
 
-#if __name__ == '__main__':
-#	print("not specified")
+def query_ctree(tree, values):
+	"""
+	query constituency tree
+
+	matches labels and leaves, returns list of subtrees
+
+		- example:
+			
+			>>> query_ctree(tree, ["NP", "Effi"])
+
+	@param tree: ParentedTree for one sentence
+	@param values: list of one or more values to match
+	@return: list
+	"""
+	trees = [s for s in tree.subtrees(filter=lambda t: t.label() in values)]
+	trees += [s for s in tree.subtrees if any(v in s.leaves() for v in values)]
+
+	return trees
+
+
+def dtree_from_df(df):
+	"""
+	extract dependency tree from sentence df
+	
+	@param df: dataframe for one sentence (CoNLL 2009/DOF)
+	@return: nx.DiGraph
+	"""
+	dg = DiGraph()                                          # a new directed graph
+
+	for row in df.iterrows():
+		tok_id = str(row[0])                                # current token id
+		tok = row[1].get("Token")                           # current token
+		head_id = row[1].get("DependencyHead")              # token head id
+		rel = row[1].get("DependencyRelation")              # dependency relation
+
+		if head_id.isdigit() == True:
+			head = df.iloc[int(head_id), 6]                 # get head token
+		else:
+			head = "ROOT"                                   # or mark as root
+
+		dg.add_node(tok, id=tok_id)                         # save token id as node attribute
+		dg.add_node(head, id=head_id)
+		dg.add_edge(head, tok, rel=rel)                     # add edge to graph
+
+	return dg
+
+
+def query_dtree(tree, values):
+	"""
+	query dependency tree
+
+	matches labels and leaves, returns list of nodes
+
+		- example:
+			
+			>>> query_dtree(tree, ["NK", "von"])
+
+	@param tree: DiGraph for one sentence
+	@param values: list of one or more values to match
+	@return: list
+	"""
+	
+	# search edges
+	relations = dict([((u, v), d['rel']) for u, v, d in tree.edges(data=True)])
+	nodes = [node for node, rel in relations.items() if rel in values]
+
+	# search nodes
+	tokens = dict([(u, d['id']) for u, d in tree.nodes(data=True)])
+	nodes += [node for node, i in tokens.items() if node in values]
+
+	return nodes
+
+
+def graph_from_biadjacency_df(df):
+	"""
+	construct bipartite graph from biadjacency matrix
+	
+	@param df: biadjacency matrix as dataframe
+	@return: nx.Graph
+	"""
+	B = nx.Graph()
+
+	"""
+	for i in df.index:
+		B.add_node(i, bipartite=0)
+		for j in df.columns:
+			B.add_node(j, bipartite=1)
+			if (df.ix[i,j] > 0):
+				B.add_edge(i, j, weight=df.ix[i,j])
+	"""
+	for i, i_label in zip(range(df.shape[0]), df.index):
+		for j, j_label in zip(range(df.shape[1]), df.columns):
+			j_label = j_label+'_'
+			if df.iloc[i,j] > 0:
+				B.add_node(i_label, bipartite=0)
+				B.add_node(j_label, bipartite=1)
+				B.add_edge(i_label, j_label, weight=df.iloc[i,j])
+			#else:
+			#    if B.edges(i_label) == None: B.remove_node(i_label)
+			#    if B.edges(j_label) == None: B.remove_node(j_label)
+
+	return B
+
+
+if __name__ == '__main__':
+	print("not specified")

@@ -1,3 +1,3 @@
 """
-miscellaneous module
+miscellaneous
 """

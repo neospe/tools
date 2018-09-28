@@ -1,5 +1,5 @@
 """
-processing module
+processing
 """
 
 def count_tokens(path):

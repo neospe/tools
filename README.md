@@ -7,8 +7,8 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
 
 - docstrings schreiben
 - neue komponenten
-    - export funktion: pickle alternative + state saving mechanismus (z.b. parameter/variablen -> json)
     - platzhalter-funktionen aus code fundus: docstrings inkl. beschreibung + links
+    - **bzgl. diss refactoring**: eine klasse für integrierten zugriff auf daten+metadaten der uwü korpora
 
 ## docset workflow
 
@@ -18,21 +18,25 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
         - edit template: ~/miniconda3/envs/py2/lib/python2.7/site-packages/pydoctor/templates/common.html
             - remove div id="showPrivate"
     - _pydoctor --add-package path-to-package_
+        - docstrings in epytext format (http://epydoc.sourceforge.net/manual-epytext.html, http://epydoc.sourceforge.net/fields.html)
 - doc2dash (https://pypi.org/project/doc2dash):
     - install: _conda install --channel "conda-forge" doc2dash_
     - _doc2dash path-to-apidocs_
+- anm: package files müssen ohne fehler ausführbar sein, sonst wird keine dokumentation generiert
 
 ## module
 
+* = done
+
 - io
-    - met-cluster/features.py, save_matrix, load_matrix: csv <-> np array
-    - met-cluster/extract.py, clean_string: str -> str
-    - helper/stripxml_lexika.py: xml -> txt
-    - helper/reader.py: dof -> queries
-    - helper/gutenberg_xml_year.py: xml dir -> lxml -> queries
-    - helper/ctree-reader.py: dof -> nltk tree -> queries
-    - helper/dtree-reader.py: dof -> nx graph -> queries
-    - met-cluster/cluster.py, nx_graph_from_biadjacency_pandas_df: df -> nx graph
+    - met-cluster/features.py, save_matrix, load_matrix: csv <-> np array *
+    - met-cluster/extract.py, clean_string: str -> str *
+    - helper/stripxml_lexika.py: xml -> txt *
+    - helper/reader.py: dof -> queries *
+    - helper/gutenberg_xml_year.py: xml dir -> lxml -> queries *
+    - helper/ctree-reader.py: dof -> nltk tree -> queries * 
+    - helper/dtree-reader.py: dof -> nx graph -> queries * 
+    - met-cluster/cluster.py, nx_graph_from_biadjacency_pandas_df: df -> nx graph * 
 - proc
     - helper/count_tok.py: dof dir -> int
     - met-cluster/extract.py, most_frequent_nouns: dof dir -> list
