@@ -26,7 +26,7 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
 
 ## module
 
-* = done
+(* = done)
 
 - io
     - met-cluster/features.py, save_matrix, load_matrix: csv <-> np array *
@@ -40,7 +40,7 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
 - proc
     - helper/count_tok.py: dof dir -> int
     - met-cluster/extract.py, most_frequent_nouns: dof dir -> list
-    - helper/wordsplitter_dict.py: dof dir -> dict
+    - helper/wordsplitter_dict.py (= most_frequent_nouns): dof dir -> dict
     - met-cluster/features.py, count_features: lists (nouns, feats) -> np array, dicts (nouns, feats)
     - met-cluster/features.py, scale_features: np array -> np array
     - met-cluster/cluster.py, scale_features: np array -> np array
@@ -53,11 +53,12 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
     - van halteren/vh_tutorial.py: dof dir -> featsel, vec, clf, crossval -> predict
     - met-sampler/classify.py, tfidf_calculate: dof dir -> df, clf
     - met-sampler/classify.py, tfidf_classify: clf, df, str -> bool
-    - tlw. zu vis
-        - word embedding/doc2vec.py: txt dir -> doc2vec -> tsne, cluster
-        - word embedding/lsa.py: txt dir -> lsa -> tsne, cluster
+    - word embedding/doc2vec.py: txt dir -> model
+    - word embedding/lsa.py: txt dir -> model
 - vis
     - met-cluster/features.py, plot_matrix: np array -> img
+    - word embedding/doc2vec.py: model -> tsne, cluster
+    - word embedding/lsa.py: model -> tsne, cluster
     - topic modeling/lda_heatmap.py: model -> sort -> img
     - topic modeling/lda_network.py: model -> nx graph -> img
     - met-cluster/cluster.py, plot_graph, plot_bi_graph: nx graph, labels -> img
