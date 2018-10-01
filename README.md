@@ -24,7 +24,7 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
     - _doc2dash path-to-apidocs_
 - anm: package files müssen ohne fehler ausführbar sein, sonst wird keine dokumentation generiert
 
-## module
+## index
 
 (* = done)
 
@@ -38,23 +38,21 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
     - helper/dtree-reader.py: dof -> nx graph -> queries * 
     - met-cluster/cluster.py, nx_graph_from_biadjacency_pandas_df: df -> nx graph * 
 - proc
-    - helper/count_tok.py: dof dir -> int
-    - met-cluster/extract.py, most_frequent_nouns: dof dir -> list
-    - helper/wordsplitter_dict.py (= most_frequent_nouns): dof dir -> dict
-    - met-cluster/features.py, count_features: lists (nouns, feats) -> np array, dicts (nouns, feats)
-    - met-cluster/features.py, scale_features: np array -> np array
-    - met-cluster/cluster.py, scale_features: np array -> np array
-    - met-cluster/features.py, filter_min_freq, filter_top_feat, filter_by_mfn, filter_by_pos: lists -> lists (nouns, feats)
-    - met-cluster/features.py, jsd: np array, np array -> real
-    - met-cluster/features.py, similarity_matrix: np array -> np array
-    - met-cluster/cluster.py, dist_to_sim: df -> df
+    - helper/count_tok.py: dof dir -> int * 
+    - met-cluster/extract.py, most_frequent_nouns: dof dir -> list * 
+    - met-cluster/features.py, count_features: lists (nouns, feats) -> np array, dicts (nouns, feats) * 
+    - met-cluster/features.py, scale_features: np array -> np array * 
+    - met-cluster/features.py, filter_min_freq, filter_top_feat, filter_by_mfn, filter_by_pos: lists -> lists (nouns, feats) * 
+    - met-cluster/features.py, jsd: np array, np array -> real * 
+    - met-cluster/features.py, similarity_matrix: np array -> np array * 
+    - met-cluster/cluster.py, dist_to_sim: df -> df * 
     - topic modeling/lda.py: dof dir -> filter, norm, vec -> model
+    - word embedding/lsa.py: txt dir -> model
+    - word embedding/doc2vec.py: txt dir -> model
     - van halteren/clf_alltokens.py: dof dir -> vec, clf, crossval -> predict
     - van halteren/vh_tutorial.py: dof dir -> featsel, vec, clf, crossval -> predict
     - met-sampler/classify.py, tfidf_calculate: dof dir -> df, clf
     - met-sampler/classify.py, tfidf_classify: clf, df, str -> bool
-    - word embedding/doc2vec.py: txt dir -> model
-    - word embedding/lsa.py: txt dir -> model
 - vis
     - met-cluster/features.py, plot_matrix: np array -> img
     - word embedding/doc2vec.py: model -> tsne, cluster
@@ -63,6 +61,7 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
     - topic modeling/lda_network.py: model -> nx graph -> img
     - met-cluster/cluster.py, plot_graph, plot_bi_graph: nx graph, labels -> img
     - met-cluster/cluster.py, plot_matrix_sorted: np array, labels -> img
+    - met-cluster/cluster.py, weiter unten: dendrogramm etc.
     - met-cluster/corpus.py, plot_docs_years: years list -> img
 - misc
     - helper/doc_split.py: txt -> txt dir
@@ -72,12 +71,6 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
         - met-sampler/sample.py: write_tsv, stratified random sampler for sentences
         - met-sampler/collect.py: substring_match, sent_lookup (levenshtein), sent_search
         - met-sampler/eval.py: plot_candidate_types, count_tokens, plot_met_types, plot_met_annotations, calculate_agreement_annotations
-
-## quellen
-
-- Code/code pre: helper, topic modeling, van halteren, word embedding
-- Diss/code pre: met-cluster, met-sampler
-- Code/fundus
 
 ## package struktur
 
