@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from glob import glob
 from collections import Counter
+from os.path import basename
 from joblib import Parallel, delayed, load, dump
 from scipy.spatial.distance import cosine, euclidean, cityblock, jaccard
 from gensim.corpora import Dictionary
@@ -435,14 +436,7 @@ TODO:
 
 - semanticmodel
 
-	- preprocessing
-		- dof + text unterstuetzen
-		   - pos_filter nur bei dof
-		   - doc_split, stopword_filter immer moeglich
-		      - alternative zu stopwords: https://tedboy.github.io/nlps/generated/generated/gensim.corpora.Dictionary.filter_extremes.html
-
-		- for file.. als generator (function oder expression?)
-		   - vgl. https://groups.google.com/forum/#!topic/gensim/NJIp2KclJAU
+	- preprocessing -> s.u.
 
 	- neu: word2vec, fasttext
 
@@ -450,7 +444,7 @@ TODO:
 	   - als doc_labels vorhanden (= filename + doc id)
 	   - andere quellen: dataframe/excel tabellen ?
 	   - datatype: dict ?
-	      -> vgl. funktionen für uwü-korpora: selben datatype verwenden
+	      -> vgl. funktionen fuer uwue-korpora: selben datatype verwenden
 """
 
 class SemanticModel:
@@ -494,68 +488,76 @@ class SemanticModel:
 		path = self.corpus_path
 		docs = []
 		doc_labels = []
-		stopwords = ""
+		stopwords = []
 
-		with open(stopwordlist, 'r') as f: stopwords = f.read()
-		stopwords = sorted(set(stopwords.split("\n")))
+		if stopword_filter is True:
+			with open(stopwordlist, 'r') as f: stopwords = f.read()
+			stopwords = sorted(set(stopwords.split("\n")))
 
-		"""
-		TEXT:
+		# TODO: das folgende ausgliedern in neue funktion?
+		# for p in paths -> yield doc
 
-	    for file in os.listdir(path=sys.argv[1]):
-        if not file.startswith("."):
-            filenames.append(file)                      # used as plot labels
-            file = "".join((sys.argv[1],'/',file))
-            print(file)
+		paths = [p for p in glob(path) if not p.startswith(".")]
+		for p in paths:
 
-            with open(file, "r") as f: documents.append(f.read().strip(strip_chars)); f.close()
-            #with open(file, "r", encoding='cp1252') as f: documents.append(f.read().strip(strip_chars)); f.close()
-		
-		DOF:
-		"""
-		for file in os.listdir(path=path):
-			if not file.startswith("."):
-				filepath = path+"/"+file
-				print(filepath)
+			if p.endswith(".txt"):
+				with open(file, "r") as f:
+					if doc_split is True:
+						docs.append(strip_symbols(f.read(doc_size)))        # TODO: read() expects size in bytes, we have words
+						doc_labels.append(basename(p))                      # numerate f.read chunks
+					else:
+						docs.append(strip_symbols(f.read()))
+						doc_labels.append(basename(p))                      # metadata, e.g. used as plot labels
+					f.close()
 
+			elif p.endswith(".csv") or p.endswith(".tsv"):
 				df = pd.read_csv(filepath, sep="\t", quoting=csv.QUOTE_NONE)
-				#df = pd.read_csv(filepath)
-				df = df.groupby('CPOS')
+	
+				if pos_filter is True:
+					df = df.groupby(pos_column)
+					doc = pd.DataFrame()
+					for t in pos_tags:
+						doc = doc.append(df.get_group(t))
 
-				doc = pd.DataFrame()
-				for p in pos_tags:                          # collect only the specified parts-of-speech
-					doc = doc.append(df.get_group(p))
-
-				#names = df.get_group('NP')['Lemma'].values.astype(str)
-				#stopwords += names.tolist()
+					#names = df.get_group('NP')['Lemma'].values.astype(str)
+					#stopwords += names.tolist()
+				else:
+					doc = df
 
 				# construct documents
-				if doc_split:                               # size according to paragraph id
-					doc = doc.groupby('ParagraphId')
-					for para_id, para in doc:
-						docs.append(para['Lemma'].values.astype(str))
-						doc_labels.append(file.split(".")[0]+" #"+str(para_id))     # use filename + doc id as plot label
-				else:                                       # size according to doc_size
+				if doc_split is True:
 					doc = doc.sort(columns='TokenId')
 					i = 1
 					while(doc_size < doc.shape[0]):
 						docs.append(doc[:doc_size]['Lemma'].values.astype(str))
-						doc_labels.append(file.split(".")[0]+" #"+str(i))
+						doc_labels.append(file.split(".")[0]+" #"+str(i))   # metadata, e.g. used as plot labels
 						doc = doc.drop(doc.index[:doc_size])        # drop doc_size rows
 						i += 1
 					docs.append(doc['Lemma'].values.astype(str))    # add the rest
 					doc_labels.append(file.split(".")[0]+" #"+str(i))
 
-		#for doc in docs: print(str(len(doc)))              # display resulting doc sizes
-		#print(stopwords)
+				docs = [[strip_symbols(word) for word in doc] for doc in docs]
 
-		texts = [[word for word in doc if word not in stopwords] for doc in docs]       # remove stopwords
 
-		all_tokens = sum(texts, [])                                                     # remove words that appear only once
+		texts = docs
+
+		# remove stopwords
+		texts = [[word for word in doc if word not in stopwords] for doc in docs]
+
+		# TODO: filter extremes -> add to stopwords
+		# vgl. https://tedboy.github.io/nlps/generated/generated/gensim.corpora.Dictionary.filter_extremes.html
+		
+		#for doc in docs:
+			#print(str(len(doc)))              # display resulting doc sizes
+
+
+		# remove words that appear only once
+		all_tokens = sum(texts, [])
 		tokens_once = set(word for word in set(all_tokens) if all_tokens.count(word) == 1)
 		texts = [[word for word in text if word not in tokens_once] for text in texts]
 
-		dictionary = Dictionary(texts)                      # vectorize
+		# vectorize
+		dictionary = Dictionary(texts)
 		corpus = [dictionary.doc2bow(text) for text in texts]
 
 		self.bow_dictionary = dictionary
