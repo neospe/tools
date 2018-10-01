@@ -125,25 +125,25 @@ class FrequencyMatrix:
 
 		- example:
 		
-			>>> freq = FrequencyMatrix(nouns, feats)
+			>>> freq = FrequencyMatrix(words, feats)
 			>>> freq.prune_minfeat(800)
 			>>> freq.build()
 			>>> freq.norm()
 			>>> X = freq.X
 	"""
-	def __init__(nouns, feats):
+	def __init__(words, feats):
 		"""
 		initialize
 
-		@param nouns: list of strings - one noun for each feature in the feats list ("nouns" can be any kind of tokens)
-		@param feats: list of strings - one feature for each noun in the nouns list
+		@param words: list of strings - one word for each feature in the feats list
+		@param feats: list of strings - one feature for each word in the words list
 		"""
-		self.nouns = nouns
+		self.words = words
 		self.feats = feats
-		self.nouns_orig = nouns  # preserve original data for reset()
+		self.words_orig = words  # preserve original data for reset()
 		self.feats_orig = feats
 		self.X = None
-		self.nouns_dict = {}
+		self.words_dict = {}
 		self.feats_dict = {}
 		self.info = []  # take note of applied transformations (pruning, norm)
 
@@ -151,28 +151,28 @@ class FrequencyMatrix:
 		"""
 		construct matrix
 		"""
-		nouns = self.nouns
+		words = self.words
 		feats = self.feats
 
-		nouns_unique = sorted(list(set(nouns)))                                 # column header
+		words_unique = sorted(list(set(words)))                                 # column header
 		feats_unique = sorted(list(set(feats)))                                 # index
 
-		nouns_dict = {noun: i for i, noun in enumerate(nouns_unique)}           # build noun-id dictionary
-		nouns_ids = [nouns_dict[noun] for noun in nouns]                        # translate nouns into ids
+		words_dict = {word: i for i, word in enumerate(words_unique)}           # build word-id dictionary
+		words_ids = [words_dict[word] for word in words]                        # translate words into ids
 
 		feats_dict = {feat: i for i, feat in enumerate(feats_unique)}           # same for feats
 		feats_ids = [feats_dict[feat] for feat in feats]                        # cf. http://stackoverflow.com/a/17152507
 
-		X = np.zeros(shape=(len(feats_unique), len(nouns_unique)), dtype=np.int64)
+		X = np.zeros(shape=(len(feats_unique), len(words_unique)), dtype=np.int64)
 
-		for n_id, f_id in zip(nouns_ids, feats_ids):
+		for n_id, f_id in zip(words_ids, feats_ids):
 			if X[f_id, n_id] == 0.0:
 				X[f_id, n_id] = 1
 			else:
 				X[f_id, n_id] += 1
 
 		self.X = X
-		self.nouns_dict = nouns_dict
+		self.words_dict = words_dict
 		self.feats_dict = feats_dict
 
 	def norm(self):
@@ -188,48 +188,98 @@ class FrequencyMatrix:
 		self.info.append("L1 norm")
 		self.X = X_scale
 
-	def prune_minfeat(self, min_feat):
+	def prune_by_freq(self, min_freq, inverse=False):
 		"""
-		use only nouns with a number of unique features
+		use only words with a frequency higher than min_freq
 
-		@param min_feat: minimum number of features for each noun
+		@param min_feat: minimum frequency for each word
+		@param inverse: use all except the most common (default: False)
+		"""
+		c = Counter(self.words)
+		if inverse == False:
+			words_selected = [w for w, count in c if count >= min_freq]
+		else:
+			words_selected = [w for w, count in c if count <= min_freq]
+		
+		words_filtered = []
+		feats_filtered = []
+		for w, f in zip(self.words, self.feats):
+			if w in words_selected:
+				words_filtered.append(w)
+				feats_filtered.append(f)
+
+		self.info.append("prune_by_freq="+",".join(labels)+"inverse="+str(inverse))
+		self.words = words_filtered
+		self.feats = feats_filtered
+
+	def prune_by_featlabel(self, labels, inverse=False):
+		"""
+		use only features containing certain substrings
+
+		@param labels: list of label strings, e.g. ['-v', '-adj', '-pp', '-gen', '-comp']
+		@param inverse: exclude features with those labels (default: False)
+		"""
+		words_filtered = []
+		feats_filtered = []
+
+		for w, f in zip(self.words, self.feats):
+			if w != None and f != None:
+				if inverse == False:
+					for l in use_labels:
+						if l in f:
+							words_filtered.append(w)
+							feats_filtered.append(f)
+				else:
+					if not any(l in f for l in use_labels):
+						words_filtered.append(w)
+						feats_filtered.append(f)
+
+		self.info.append("prune_by_featlabel="+",".join(labels)+"inverse="+str(inverse))
+		self.words = words_filtered
+		self.feats = feats_filtered
+
+	def prune_by_featfreq(self, min_feat):
+		"""
+		use only words with more than min_feat unique features
+
+		@param min_feat: minimum number of features for each word
 		"""
 		gluedlist = []
-		for n, f in zip(self.nouns, self.feats):
-			if n is not None and f is not None:
-				gluedlist.append(str(n)+'###'+str(f))
+		for w, f in zip(self.words, self.feats):
+			if w is not None and f is not None:
+				gluedlist.append(str(w)+'###'+str(f))
 
 		# drop duplicates
 		gluedlist = list(set(gluedlist))
 
 		# splitting data
-		nouns_unique = []
+		words_unique = []
 		feats_unique = []
-		for nf in gluedlist:
-			n, f = nf.split('###')
-			nouns_unique.append(n)
+		for wf in gluedlist:
+			w, f = wf.split('###')
+			words_unique.append(w)
 			feats_unique.append(f)
 
-		# select nouns where count > min_feat
-		nouns_selected = []
-		c = Counter(nouns_unique)
+		# select words where count > min_feat
+		words_selected = []
+		c = Counter(words_unique)
 		for k in list(c):
-			if c[k] > min_feat:
-				nouns_selected.append(k)
+			if c[k] >= min_feat:
+				words_selected.append(k)
 
-		# filter nouns+feats using the nouns_selected list
-		nouns_filtered = []
+		# filter words+feats using the words_selected list
+		words_filtered = []
 		feats_filtered = []
-		for n, f in zip(self.nouns, self.feats):
-			if n in nouns_selected and n != None and f != None:
-				nouns_filtered.append(n)
+		for w, f in zip(self.words, self.feats):
+			if w in words_selected and w != None and f != None:
+				words_filtered.append(w)
 				feats_filtered.append(f)
 
-		self.info.append("prune_minfeat="+str(min_feat))
-		self.nouns = nouns_filtered
+		self.info.append("prune_by_featfreq="+str(min_feat))
+		self.words = words_filtered
 		self.feats = feats_filtered
 
-	def prune_topfeat(self, top_feat, inverse=False):
+	def prune_by_featfreq2(self, top_feat, inverse=False):
 		"""
 		use only the most common features overall
 
@@ -239,53 +289,27 @@ class FrequencyMatrix:
 		c = Counter(self.feats)
 		feats_selected = [f for f, count in c.most_common(top_feat)]
 		
-		nouns_filtered = []
+		words_filtered = []
 		feats_filtered = []
-		for n, f in zip(self.nouns, self.feats):
+		for w, f in zip(self.words, self.feats):
 			if inverse == False:
 				if f in feats_selected:
-					nouns_filtered.append(n)
+					words_filtered.append(w)
 					feats_filtered.append(f)
 			else:
 				if f not in feats_selected:
-					nouns_filtered.append(n)
+					words_filtered.append(w)
 					feats_filtered.append(f)
 
-		self.info.append("prune_topfeat="+str(top_feat)+"inverse="+str(inverse))
-		self.nouns = nouns_filtered
-		self.feats = feats_filtered
-
-	def prune_label(self, labels, inverse=False):
-		"""
-		use only features containing certain substrings
-
-		@param labels: list of label strings, e.g. ['-v', '-adj', '-pp', '-gen', '-comp']
-		@param inverse: exclude features with those labels (default: False)
-		"""
-		nouns_filtered = []
-		feats_filtered = []
-
-		for n, f in zip(self.nouns, self.feats):
-			if n != None and f != None:
-				if inverse == False:
-					for l in use_labels:
-						if l in f:
-							nouns_filtered.append(n)
-							feats_filtered.append(f)
-				else:
-					if not any(l in f for l in use_labels):
-						nouns_filtered.append(n)
-						feats_filtered.append(f)
-
-		self.info.append("prune_topfeat="+",".join(labels)+"inverse="+str(inverse))
-		self.nouns = nouns_filtered
+		self.info.append("prune_by_featfreq2="+str(top_feat)+"inverse="+str(inverse))
+		self.words = words_filtered
 		self.feats = feats_filtered
 
 	def reset(self):
 		"""
 		reset filters
 		"""
-		self.nouns = self.nouns_orig
+		self.words = self.words_orig
 		self.feats = self.feats_orig
 		self.info = []
 
@@ -409,15 +433,6 @@ class SimilarityMatrix:
 """
 TODO:
 
-- frequency matrix
-
-	- "nouns" -> "words" ?
-
-	- pruning
-		- eher raus: prune_topfeat ?
-		- neu: prune_vocab -- vgl. https://radimrehurek.com/gensim/utils.html#gensim.utils.prune_vocab
-
-
 - semanticmodel
 
 	- preprocessing
@@ -429,13 +444,13 @@ TODO:
 		- for file.. als generator (function oder expression?)
 		   - vgl. https://groups.google.com/forum/#!topic/gensim/NJIp2KclJAU
 
-	- word2vec
+	- neu: word2vec, fasttext
 
 	- metadata management
 	   - als doc_labels vorhanden (= filename + doc id)
 	   - andere quellen: dataframe/excel tabellen ?
 	   - datatype: dict ?
-	      - selben datatype wie bei funktionen für uwü-korpora
+	      -> vgl. funktionen für uwü-korpora: selben datatype verwenden
 """
 
 class SemanticModel:
