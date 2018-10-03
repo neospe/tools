@@ -462,20 +462,29 @@ class SemanticModel:
 		self.corpus_path = corpus_path
 		self.doc_split = None
 		self.doc_size = None
+		self.freq_filter = None
+		self.freq_threshold = None  # percentage of all vocabulary items
+		self.freq_extremes = []
 		self.stopword_filter = None
 		self.stopword_path = None
+		self.stopwords = []
 		self.pos_filter = None
 		self.pos_tags = None
 		self.pos_column = None
 		self.bow_dictionary = None
 		self.bow_corpus = None
-		self.doc_labels = None  # metadata
+		self.doc_labels = []  # metadata
 		self.info = []  # take note of model parameters
 
-	def preproc(self, doc_split=False, doc_size=1000, stopword_filter=False, stopword_path="stopwords.txt",
+	def preproc(self, doc_split=False, doc_size=1000, freq_filter=False, freq_ratio=0.0001, stopword_filter=False, stopword_path="stopwords.txt",
 		pos_filter=False, pos_tags=["ADJ", "NN", "V"], pos_column="CPOS"):
 		"""
 		preprocessing
+
+		@param doc_size: slice input into documents of doc_size words (default: 1000)
+		@param freq_ratio: percentage of vocabulary to prune, top and bottom (default: 0.0001)
+		@param stopword_path: path to stopwords in plaintext file
+		@param pos_tags: list of str, use only these POS tags
 		"""
 		self.doc_split = doc_split
 		self.doc_size = doc_size
@@ -485,84 +494,102 @@ class SemanticModel:
 		self.pos_tags = pos_tags
 		self.pos_column = pos_column
 
-		path = self.corpus_path
-		docs = []
-		doc_labels = []
-		stopwords = []
+		# TODO: if the corpus is very large, consume the generator directly into a bow representation
+		docs = list(_iter_docs())
+
+		# filter extremes and stopwords
+		c = Counter([word for word in doc for doc in docs])
+		self.freq_extremes += set(k for k, v in c.items() if v == 1)  # always drop words that appear only once
+
+		if self.freq_filter is True:
+			number_omit_items = int(len(cnt) * self.freq_threshold)
+			self.freq_extremes += c.most_common(number_omit_items)
+			self.freq_extremes += c.most_common()[:-number_omit_items-1:-1]  # least common
 
 		if stopword_filter is True:
-			with open(stopwordlist, 'r') as f: stopwords = f.read()
-			stopwords = sorted(set(stopwords.split("\n")))
+			with open(stopwordlist, 'r') as f: sw = f.read()
+			self.stopwords += sorted(set(sw.split("\n")))
 
-		# TODO: das folgende ausgliedern in neue funktion?
-		# for p in paths -> yield doc
+		if self.freq_filter is True and self.stopword_filter is True:
+			docs = [[word for word in doc if word not in self.stopwords if word not in self.freq_extremes] for doc in docs]
 
-		paths = [p for p in glob(path) if not p.startswith(".")]
-		for p in paths:
+		elif self.freq_filter is True and self.stopword_filter is False:
+			docs = [[word for word in doc if word not in self.freq_extremes] for doc in docs]
 
-			if p.endswith(".txt"):
-				with open(file, "r") as f:
-					if doc_split is True:
-						docs.append(strip_symbols(f.read(doc_size)))        # TODO: read() expects size in bytes, we have words
-						doc_labels.append(basename(p))                      # numerate f.read chunks
-					else:
-						docs.append(strip_symbols(f.read()))
-						doc_labels.append(basename(p))                      # metadata, e.g. used as plot labels
-					f.close()
-
-			elif p.endswith(".csv") or p.endswith(".tsv"):
-				df = pd.read_csv(filepath, sep="\t", quoting=csv.QUOTE_NONE)
-	
-				if pos_filter is True:
-					df = df.groupby(pos_column)
-					doc = pd.DataFrame()
-					for t in pos_tags:
-						doc = doc.append(df.get_group(t))
-
-					#names = df.get_group('NP')['Lemma'].values.astype(str)
-					#stopwords += names.tolist()
-				else:
-					doc = df
-
-				# construct documents
-				if doc_split is True:
-					doc = doc.sort(columns='TokenId')
-					i = 1
-					while(doc_size < doc.shape[0]):
-						docs.append(doc[:doc_size]['Lemma'].values.astype(str))
-						doc_labels.append(file.split(".")[0]+" #"+str(i))   # metadata, e.g. used as plot labels
-						doc = doc.drop(doc.index[:doc_size])        # drop doc_size rows
-						i += 1
-					docs.append(doc['Lemma'].values.astype(str))    # add the rest
-					doc_labels.append(file.split(".")[0]+" #"+str(i))
-
-				docs = [[strip_symbols(word) for word in doc] for doc in docs]
-
-
-		texts = docs
-
-		# remove stopwords
-		texts = [[word for word in doc if word not in stopwords] for doc in docs]
-
-		# TODO: filter extremes -> add to stopwords
-		# vgl. https://tedboy.github.io/nlps/generated/generated/gensim.corpora.Dictionary.filter_extremes.html
-		
-		#for doc in docs:
-			#print(str(len(doc)))              # display resulting doc sizes
-
-
-		# remove words that appear only once
-		all_tokens = sum(texts, [])
-		tokens_once = set(word for word in set(all_tokens) if all_tokens.count(word) == 1)
-		texts = [[word for word in text if word not in tokens_once] for text in texts]
+		elif self.freq_filter is False and self.stopword_filter is True:
+			docs = [[word for word in doc if word not in self.stopwords] for doc in docs]
 
 		# vectorize
-		dictionary = Dictionary(texts)
-		corpus = [dictionary.doc2bow(text) for text in texts]
+		dictionary = Dictionary(docs)
+		corpus = [dictionary.doc2bow(doc) for doc in docs]
 
 		self.bow_dictionary = dictionary
 		self.bow_corpus = corpus
 		self.doc_labels = doc_labels
+
+	def _iter_docs(self):
+		paths = [p for p in glob(self.corpus_path) if not p.startswith(".")]
+		for p in paths:
+
+			if p.endswith(".txt"):
+				with open(p, "r") as f:
+					if self.doc_split is True:
+						docs_tmp = []
+						doc = strip_symbols(f.read()).split(" ")
+
+						while len(doc) >= self.doc_size:
+							docs_tmp.append(doc[:self.doc_size])
+							del doc[:self.doc_size]
+						docs_tmp.append(doc)  # add rest
+						
+						for i, d in enumerate(docs_tmp, start=1):
+							doc_labels.append(basename(p).split(".")[0]+" #"+str(i))
+							yield d
+					else:
+						doc = strip_symbols(f.read()).split(" ")
+						doc_labels.append(basename(p).split(".")[0])  # metadata, e.g. used as plot labels
+						yield doc
+
+			elif p.endswith(".csv") or p.endswith(".tsv"):
+				df = pd.read_csv(p, sep="\t", quoting=csv.QUOTE_NONE)
+	
+				if self.pos_filter is True:
+					df = df.groupby(self.pos_column)
+					doc_df = pd.DataFrame()
+					for t in self.pos_tags:
+						doc_df = doc.append(df.get_group(t))
+
+					# cheap way to filter out proper names
+					#names = df.get_group('NP')["Token"].values.astype(str)
+					#self.stopwords += names.tolist()
+				else:
+					doc_df = df
+
+				# construct documents
+				if "Lemma" in doc_df.columns:
+					token_column = "Lemma"
+				else:
+					token_column = "Token"
+
+				if self.doc_split is True:
+					doc_df = doc_df.sort(columns='TokenId')
+					i = 1
+					while(self.doc_size < doc_df.shape[0]):
+						doc_str = " ".join(doc_df[:self.doc_size][token_column].values.astype(str))
+						doc = strip_symbols(doc_str).split(" ")
+						doc_labels.append(basename(p).split(".")[0]+" #"+str(i))  # metadata, e.g. used as plot labels
+						doc_df = doc_df.drop(doc_df.index[:self.doc_size])  # drop doc_size rows
+						i += 1
+						yield doc
+
+					doc_str = " ".join(doc_df[token_column].values.astype(str))  # add rest
+					doc_labels.append(basename(p).split(".")[0]+" #"+str(i))
+				else:
+					doc_str = " ".join(doc_df[token_column].values.astype(str))
+					doc_labels.append(basename(p).split(".")[0]+" #"+str(i))
+				
+				doc = strip_symbols(doc_str).split(" ")
+				yield doc
 
 	def lda(self, model_parameters):
 		"""
