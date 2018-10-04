@@ -46,13 +46,14 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
     - met-cluster/features.py, jsd: np array, np array -> real * 
     - met-cluster/features.py, similarity_matrix: np array -> np array * 
     - met-cluster/cluster.py, dist_to_sim: df -> df * 
-    - topic modeling/lda.py: dof dir -> filter, norm, vec -> model
-    - word embedding/lsa.py: txt dir -> model
-    - word embedding/doc2vec.py: txt dir -> model
+    - topic modeling/lda.py: dof dir -> filter, norm, vec -> model * 
+    - word embedding/lsa.py: txt dir -> model * 
     - van halteren/clf_alltokens.py: dof dir -> vec, clf, crossval -> predict
     - van halteren/vh_tutorial.py: dof dir -> featsel, vec, clf, crossval -> predict
     - met-sampler/classify.py, tfidf_calculate: dof dir -> df, clf
     - met-sampler/classify.py, tfidf_classify: clf, df, str -> bool
+    - neu
+        - gensim word2vec, fasttext * 
 - vis
     - met-cluster/features.py, plot_matrix: np array -> img
     - word embedding/doc2vec.py: model -> tsne, cluster

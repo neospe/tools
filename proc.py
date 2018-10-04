@@ -13,6 +13,7 @@ from joblib import Parallel, delayed, load, dump
 from scipy.spatial.distance import cosine, euclidean, cityblock, jaccard
 from gensim.corpora import Dictionary
 from gensim.models import LdaModel, LsiModel, Word2Vec, FastText
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from io import save_pkl, load_pkl, strip_symbols
 
 
@@ -70,7 +71,7 @@ def most_frequent(path, top_n, type_filter=True, pos_filter=True, pos_tag="NN", 
 	for filepath in glob(path):
 		if not filepath.startswith('.'):
 			try:
-				df = pd.read_csv(filepath, sep="\t", quoting=csv.QUOTE_NONE)
+				df = pd.read_csv(filepath, sep="\t")  #, quoting=csv.QUOTE_NONE)
 			except (pd.parser.CParserError) as detail:
 				print(filepath, detail)
 
@@ -318,7 +319,7 @@ class FrequencyMatrix:
 
 	def save(self, path="FrequencyMatrix.pkl"):
 		"""
-		save class to disk
+		save class instance to disk
 
 		@param path: file to save (default: "FrequencyMatrix.pkl")
 		"""
@@ -327,7 +328,7 @@ class FrequencyMatrix:
 
 	def load(self, path="FrequencyMatrix.pkl"):
 		"""
-		load class from disk
+		load class instance from disk
 
 		@param path: file to load (default: "FrequencyMatrix.pkl")
 		"""
@@ -421,7 +422,7 @@ class SimilarityMatrix:
 
 	def save(self, path="SimilarityMatrix.pkl"):
 		"""
-		save class to disk
+		save class instance to disk
 
 		@param path: file to save (default: "SimilarityMatrix.pkl")
 		"""
@@ -430,7 +431,7 @@ class SimilarityMatrix:
 
 	def load(self, path="SimilarityMatrix.pkl"):
 		"""
-		load class from disk
+		load class instance from disk
 
 		@param path: file to load (default: "SimilarityMatrix.pkl")
 		"""
@@ -457,9 +458,14 @@ class SemanticModel:
 			>>> sem = SemanticModel("~/Daten/romankorpus")
 			>>> sem.preproc(doc_split=True, pos_filter=True)
 			>>> sem.lda(num_topics=100)
-			>>> sem.save("romankorpus_lda")
+			>>> sem.save("romankorpus_lda.pkl")
 	"""
 	def __init__(self, corpus_path):
+		"""
+		initialize
+
+		@param corpus_path: path to directory containing txt, csv, or tsv files
+		"""
 		self.corpus_path = corpus_path
 		self.corpus_name = corpus_path.split("/")[-1]
 		self.linesent_path = self.corpus_name+"-LineSentence.txt"
@@ -565,7 +571,10 @@ class SemanticModel:
 						yield doc
 
 			elif p.endswith(".csv") or p.endswith(".tsv"):
-				df = pd.read_csv(p, sep="\t")  #, quoting=csv.QUOTE_NONE)
+				try:
+					df = pd.read_csv(p, sep="\t")  #, quoting=csv.QUOTE_NONE)
+				except (pd.parser.CParserError) as detail:
+					print(p, detail)
 	
 				if self.pos_filter is True:
 					df = df.groupby(self.pos_column)
@@ -659,7 +668,7 @@ class SemanticModel:
 
 	def save(self, path="SemanticModel.pkl"):
 		"""
-		save class to disk
+		save class instance to disk
 
 		@param path: file to save (default: "SemanticModel.pkl")
 		"""
@@ -668,7 +677,7 @@ class SemanticModel:
 
 	def load(self, path="SemanticModel.pkl"):
 		"""
-		load class from disk
+		load class instance from disk
 
 		@param path: file to load (default: "SemanticModel.pkl")
 		"""
@@ -677,30 +686,159 @@ class SemanticModel:
 		self.__dict__.update(tmp_dict)
 
 
-class Classifiers:
+class AuthorshipClassifier:
+	"""
+	authorship classification
 
-	def clf(matrix, save_path):
+		- example:
+		
+			>>> auth = AuthorshipClassifier("~/Daten/Grillparzer")
+			>>> auth.preproc()
+			>>> auth.train()
+			>>> auth.predict()
+	"""
+	def __init__(self, corpus_path):
 		"""
-		van halteren/clf_alltokens.py
+		initialize
+
+		@param corpus_path: path to directory containing txt, csv, or tsv files. expects filenames to be in the format "author - title"
+		"""
+		self.corpus_path = corpus_path
+		self.X = None
+		self.y = []
+		self.vec = None
+		self.mfw = None
+		self.num_mfw = None
+
+	def preproc(self, mfw=True, num_mfw=2000):
+		"""
+		preprocessing
+
+		@param mfw: use only the most frequent words per author (default: True)
+		@param num_mfw: number of most frequent words to use (default: 2000)
+		"""
+		self.mfw = mfw
+		self.num_mfw = num_mfw
+		docs = []
+		author_docs = []
+
+		paths = [p for p in glob(self.corpus_path) if not p.startswith(".")]
+		for p in paths:
+			if p.endswith(".txt"):
+				with open(p, "r") as f:
+					doc = f.read()
+			elif p.endswith(".csv") or p.endswith(".tsv"):
+				try:
+					df = pd.read_csv(p, sep="\t")  #, quoting=csv.QUOTE_NONE)
+				except (pd.parser.CParserError) as detail:
+					print(p, detail)
+				doc = " ".join(df['Token'].values.astype(str))
+
+			prev_author = self.y[-1]
+			author = p.split("-")[0]  #.replace("%20", " ")
+			self.y.append(author)
+
+			if mfw is True:
+				if prev_author == author:  # expects authors to be consistently named/alphabetically ordered
+					author_docs.append(doc)
+				else:  # next author, calculate mfw for the last one
+					c = Counter(" ".join(author_docs).split(" "))
+					docs += [[word for word in doc] for doc in author_docs if word in c.most_common(num_mfw)]
+					author_docs = [doc]  # start new
+			else:
+				docs.append(doc)
+			
+		self.vec = CountVectorizer()
+		self.X = vec.fit_transform(docs)
+
+		#imp = Imputer(missing_values='NaN', strategy='median', axis=0)
+		#self.X = imp.fit_transform(self.X)
+
+	def preproc_vh(self, num_feat=700):
+		"""
+		preprocessing
+
+		cf. van Halteren et al. - New Machine Learning Methods Demonstrate the Existence of a Human Stylome
+
+		no plaintext support, needs POS information
+
+		@param num_feat: number of randomly selected features to use (default: 700)
+		"""
+		
+
+	def train(self):
+		"""
+		train classifier
 		"""
 
-
-	def select_features_vh(path):
+	def predict(self, doc):
 		"""
-		van halteren/vh_tutorial.py
+		classify document
 		"""
-		return matrix
 
-
-	def tfidf_calculate(path):
+	def save(self, path="AuthorshipClassifier.pkl"):
 		"""
-		met-sampler/classify.py
+		save class instance to disk
+
+		@param path: file to save (default: "AuthorshipClassifier.pkl")
+		"""
+		path = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+path
+		save_pkl(path, self.__dict__)
+
+	def load(self, path="AuthorshipClassifier.pkl"):
+		"""
+		load class instance from disk
+
+		@param path: file to load (default: "AuthorshipClassifier.pkl")
+		"""
+		tmp_dict = load_pkl(path)
+		self.__dict__.clear()
+		self.__dict__.update(tmp_dict)
+	
+
+class TFIDFSentenceClassifier:
+
+	def __init__(self, corpus_path):
+		"""
+		initialize
+
+		@param corpus_path: path to directory containing txt, csv, or tsv files
+		"""
+		self.corpus_path = corpus_path
+
+	def preproc(self):
+		"""
+		preprocessing
+		"""
+
+	def train(self):
+		"""
+		aka calculate tfidf scores
 		"""
 		return df, clf
 
 
-	def tfidf_metaphor_clf(clf, df, str):
+	def predict(self, df, str):
 		"""
 		met-sampler/classify.py
 		"""
 		return boolean
+
+	def save(self, path="TFIDFSentenceClassifier.pkl"):
+		"""
+		save class instance to disk
+
+		@param path: file to save (default: "TFIDFSentenceClassifier.pkl")
+		"""
+		path = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+path
+		save_pkl(path, self.__dict__)
+
+	def load(self, path="TFIDFSentenceClassifier.pkl"):
+		"""
+		load class instance from disk
+
+		@param path: file to load (default: "TFIDFSentenceClassifier.pkl")
+		"""
+		tmp_dict = load_pkl(path)
+		self.__dict__.clear()
+		self.__dict__.update(tmp_dict)
