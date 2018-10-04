@@ -1,5 +1,18 @@
 """
 processing
+
+
+TODO:
+
+- semanticmodel: metadata management
+   - als doc_labels vorhanden (= filename + doc id)
+   - andere quellen: dataframe/excel tabellen ?
+   - datatype: dict ?
+	  -> vgl. funktionen fuer uwue-korpora: selben datatype verwenden
+- authorshipclf
+   - preproc erstellt list of docs + y pro doc
+   - preproc_stylome erstellt list of features + y pro feature -> auch in docs zusammenfassen?
+   
 """
 
 import numpy as np
@@ -13,13 +26,14 @@ from joblib import Parallel, delayed, load, dump
 from scipy.spatial.distance import cosine, euclidean, cityblock, jaccard
 from gensim.corpora import Dictionary
 from gensim.models import LdaModel, LsiModel, Word2Vec, FastText
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.preprocessing import Imputer
+from sklearn.feature_extraction.text import CountVectorizer, DictVectorizer, TfidfVectorizer
 from io import save_pkl, load_pkl, strip_symbols
 
 
 def token_count(path, pos_filter=True, pos_exclude="PUNC", pos_column="CPOS"):
 	"""
-	return corpus size in tokens
+	corpus size in tokens
 
 		- example:
 		
@@ -96,7 +110,7 @@ def most_frequent(path, top_n, type_filter=True, pos_filter=True, pos_tag="NN", 
 
 def sim2dist(X):
 	"""
-	conversion between similarity and distance matrix
+	convert between similarity and distance matrix
 
 	goes both ways, expects distances between 0-1
 
@@ -439,15 +453,6 @@ class SimilarityMatrix:
 		self.__dict__.clear()
 		self.__dict__.update(tmp_dict)
 
-"""
-TODO:
-
-- semanticmodel: metadata management
-   - als doc_labels vorhanden (= filename + doc id)
-   - andere quellen: dataframe/excel tabellen ?
-   - datatype: dict ?
-	  -> vgl. funktionen fuer uwue-korpora: selben datatype verwenden
-"""
 
 class SemanticModel:
 	"""
@@ -688,11 +693,11 @@ class SemanticModel:
 
 class AuthorshipClassifier:
 	"""
-	authorship classification
+	classify authors incl. stylome features
 
 		- example:
 		
-			>>> auth = AuthorshipClassifier("~/Daten/Grillparzer")
+			>>> auth = AuthorshipClassifier("~/Daten/authorship_corpus")
 			>>> auth.preproc()
 			>>> auth.train()
 			>>> auth.predict()
@@ -705,7 +710,7 @@ class AuthorshipClassifier:
 		"""
 		self.corpus_path = corpus_path
 		self.X = None
-		self.y = []
+		self.y = None
 		self.vec = None
 		self.mfw = None
 		self.num_mfw = None
@@ -717,6 +722,7 @@ class AuthorshipClassifier:
 		@param mfw: use only the most frequent words per author (default: True)
 		@param num_mfw: number of most frequent words to use (default: 2000)
 		"""
+		self.y = []
 		self.mfw = mfw
 		self.num_mfw = num_mfw
 		docs = []
@@ -743,18 +749,18 @@ class AuthorshipClassifier:
 					author_docs.append(doc)
 				else:  # next author, calculate mfw for the last one
 					c = Counter(" ".join(author_docs).split(" "))
-					docs += [[word for word in doc] for doc in author_docs if word in c.most_common(num_mfw)]
+					docs += [[word for word in doc if word in c.most_common(num_mfw)] for doc in author_docs]
 					author_docs = [doc]  # start new
 			else:
 				docs.append(doc)
 			
 		self.vec = CountVectorizer()
-		self.X = vec.fit_transform(docs)
+		self.X = self.vec.fit_transform(docs)
 
 		#imp = Imputer(missing_values='NaN', strategy='median', axis=0)
 		#self.X = imp.fit_transform(self.X)
 
-	def preproc_vh(self, num_feat=700):
+	def preproc_stylome(self, num_feat=700):
 		"""
 		preprocessing
 
@@ -764,7 +770,141 @@ class AuthorshipClassifier:
 
 		@param num_feat: number of randomly selected features to use (default: 700)
 		"""
+		self.y = []
+		feats = []
+
+		paths = [p for p in glob(self.corpus_path) if not p.startswith(".")]
+		for p in paths:
+			author = p.split("-")[0]  #.replace("%20", " ")
+			for i in range(num_feat): self.y.append(author)                     # add n labels to y
+
+			feat = self._featureselect(p)                       # perform feature selection
+			rows = np.random.choice(feat.index.values, num_feat)       # randomly select n observations
+			feat_rand = feat.ix[rows]
+			feats.append(feat_rand)
+
+		data = pd.concat(feats, ignore_index=True)                      # merge into one dataframe
+
+		vec = DictVectorizer(sparse=False)
+		X = vec.fit_transform(data.T.to_dict().values())
+
+		imp = Imputer(missing_values='NaN', strategy='median', axis=0)    # replace NaN
+		X = imp.fit_transform(X)
+
+	def _featureselect(self, path):
+		try:
+			df = pd.read_csv(path, sep="\t")  #, quoting=csv.QUOTE_NONE)
+		except (pd.parser.CParserError) as detail:
+			print(path, detail)
 		
+		sent_max = df["SentenceId"].max()               # number of sentences in the text
+		token_max = df["TokenId"].max()                 # number of tokens in the text
+
+		text = list(df["Token"])
+		word_freq = Counter(text)                     # word frequencies
+
+		columns_features = ['CurrToken', 'PrevToken', 'NextToken', 'TokenTags', 'LengthPosition', 'TagFreqOccur']
+		features = pd.DataFrame(columns=columns_features, index=range(token_max+1))       # dataframe to hold the results
+
+		for sent_id in range(sent_max+1):               # iterate through sentences
+			sentence = df[df['SentenceId'] == sent_id]  # return rows corresponding to sent_id
+
+			s_len = len(sentence.index)                 # length of the sentence
+			if s_len == 1: s_class = 1                  # in 7 classes: 1, 2, 3, 4, 5-10,11-20 or 21+ tokens
+			elif s_len == 2: s_class = 2
+			elif s_len == 3: s_class = 3
+			elif s_len == 4: s_class = 4
+			elif 5 <= s_len <= 10: s_class = 5
+			elif 11 <= s_len <= 20: s_class = 6
+			elif 21 <= s_len: s_class = 7
+
+			tok_count = 1
+			for row in sentence.iterrows():
+				tok_id = row[0]                         # row/dataframe index is the same as TokenId
+
+				features.iat[tok_id, 0] = current_tok = row[1].get("Token")             # save current token
+				tokentags = current_pos = row[1].get("CPOS")                            # get current pos tag
+
+				if tok_id > 0:
+					features.iat[tok_id, 1] = df.iloc[tok_id-1, 2]                      # save previous token
+					tokentags += "-" + df.iloc[tok_id-1, 3]                             # get previous pos tag
+				else:
+					tokentags += "-NaN"
+
+				if tok_id < token_max:
+					features.iat[tok_id, 2] = df.iloc[tok_id+1, 2]                      # save next token
+					tokentags += "-" + df.iloc[tok_id+1, 3]                             # get next pos tag
+				else:
+					tokentags += "-NaN"
+
+				features.iat[tok_id, 3] = tokentags                         # save pos tags
+
+				if tok_count <= 3: t_class = 1                              # position in the sentence
+				elif (s_len-3) < tok_count <= s_len: t_class = 2            # in 3 classes: first three tokens, last three tokens, other
+				else: t_class = 3
+
+				features.iat[tok_id, 4] = str(s_class) + "-" + str(t_class) # save sentence length + token position
+
+				tok_freq = word_freq[current_tok]                           # frequency of the current token in the text
+				if tok_freq == 1: f_class = 1                               # in 5 classes: 1, 2-5, 6-10,11-20 or 21+
+				elif 2 <= tok_freq <= 5: f_class = 2
+				elif 6 <= tok_freq <= 10: f_class = 3
+				elif 11 <= tok_freq <= 20: f_class = 4
+				elif 21 <= tok_freq: f_class = 5
+
+				block_occur = self._token_in_textblock(text, current_tok)
+
+				occurrences = df[df['Token'] == current_tok]                # new dataframe containing all of curr_token's occurrences
+				previous_distance = self._distance_to_previous(tok_id, sent_id, occurrences)
+
+				features.iat[tok_id, 5] = current_pos + "-" + str(f_class) + "-" + str(block_occur) + "-" + str(previous_distance)
+
+				tok_count += 1
+
+		return features
+
+	def _distance_to_previous(curr_tok_id, curr_sent_id, occurrences):
+		# returns distance in sentences to the previous occurrence
+		# of the current token (in 7 classes: NONE, SAME, 1, 2-3,4-7,8-15,16+
+
+		occurrences = occurrences.reset_index()                             # add new index from 0 .. len(occurrences.index)
+
+		current_key = occurrences[occurrences['TokenId'] == curr_tok_id].index[0]   # get row corresponding to curr_tok_id + its new index value
+
+		if current_key > 0:                                                 # there is more than one && its not the first occurrence
+			prev_sent_id = int(occurrences.iloc[current_key-1, 1])          # get previous sentence id based on that index
+
+			dist = curr_sent_id - prev_sent_id
+
+			if dist == 0: d_class = 2
+			elif dist == 1: d_class = 3
+			elif 2 <= dist <= 3: d_class = 4
+			elif 4 <= dist <= 7: d_class = 5
+			elif 8 <= dist <= 15: d_class = 6
+			elif 16 <= dist: d_class = 7
+		else:
+			d_class = 1
+
+		return d_class
+
+	def _token_in_textblock(text, token):        # returns number of blocks (consisting of 1/7th of the text)
+		blocks = []                             # in which the current token is found, in 4 classes: 1, 2-3,4-6,7
+		block_size = len(text)/7
+		last = no_of_blocks = 0
+
+		while last < len(text):
+			blocks.append(text[int(last):int(last + block_size)])
+			last += block_size
+
+		for block in blocks:
+			if token in block: no_of_blocks += 1
+
+		if no_of_blocks == 1: occur_class = 1
+		elif 2 <= no_of_blocks <= 3: occur_class = 2
+		elif 4 <= no_of_blocks <= 6: occur_class = 3
+		else: occur_class = 4
+
+		return occur_class
 
 	def train(self):
 		"""
