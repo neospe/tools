@@ -34,7 +34,7 @@
 <pre class="py-doctest">
 <span class="py-prompt">&gt;&gt;&gt; </span>sem = SemanticModel(<span class="py-string">"~/Daten/romankorpus"</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>sem.preproc(doc_split=True, pos_filter=True)
-<span class="py-prompt">&gt;&gt;&gt; </span>sem.lda(model_parameters)
+<span class="py-prompt">&gt;&gt;&gt; </span>sem.lda(num_topics=100)
 <span class="py-prompt">&gt;&gt;&gt; </span>sem.save(<span class="py-string">"romankorpus_lda"</span>)</pre>
 </li>
 </ul><table class="fieldTable"></table></div>
@@ -52,19 +52,19 @@
 </tr><tr class="method">
 <td>Method</td>
 <td><a class="code" data-type="Method" href="tools.proc.SemanticModel.html#lda">lda</a></td>
-<td><span>topic modeling/lda.py</span></td>
+<td><span>lda</span></td>
 </tr><tr class="method">
 <td>Method</td>
 <td><a class="code" data-type="Method" href="tools.proc.SemanticModel.html#lsa">lsa</a></td>
-<td><span>word embedding/lsa.py</span></td>
+<td><span>lsa</span></td>
 </tr><tr class="method">
 <td>Method</td>
 <td><a class="code" data-type="Method" href="tools.proc.SemanticModel.html#word2vec">word2vec</a></td>
-<td><span>neu</span></td>
+<td><span>word2vec</span></td>
 </tr><tr class="method">
 <td>Method</td>
 <td><a class="code" data-type="Method" href="tools.proc.SemanticModel.html#fasttext">fasttext</a></td>
-<td><span>neu</span></td>
+<td><span>fasttext</span></td>
 </tr><tr class="method">
 <td>Method</td>
 <td><a class="code" data-type="Method" href="tools.proc.SemanticModel.html#save">save</a></td>
@@ -73,6 +73,10 @@
 <td>Method</td>
 <td><a class="code" data-type="Method" href="tools.proc.SemanticModel.html#load">load</a></td>
 <td><span>load class from disk</span></td>
+</tr><tr class="method private">
+<td>Method</td>
+<td><a class="code" data-type="Method" href="tools.proc.SemanticModel.html#_iter_docs">_iter_docs</a></td>
+<td><span class="undocumented">Undocumented</span></td>
 </tr>
 </table>
 </div>
@@ -85,7 +89,7 @@
 <div class="functionHeader">
     
     def
-    __init__(corpus_path):
+    __init__(self, corpus_path):
     
   </div>
 <div class="docstring functionBody">
@@ -99,11 +103,25 @@
 <div class="functionHeader">
     
     def
-    preproc(self, doc_split=False, doc_size=1000, stopword_filter=False, stopword_path='stopwords.txt', pos_filter=False, pos_tags=['ADJ', 'NN', 'V'], pos_column='CPOS'):
+    preproc(self, doc_split=False, doc_size=1000, freq_filter=False, freq_threshold=0.0001, freq_min=1, stopword_filter=False, stopword_path='stopwords.txt', pos_filter=False, pos_tags=['ADJ', 'NN', 'V'], pos_column='CPOS'):
     
   </div>
 <div class="docstring functionBody">
-<div><p>preprocessing</p><table class="fieldTable"></table></div>
+<div><p>preprocessing</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">doc_size</td><td>slice input into documents of doc_size words (default: 1000)</td></tr><tr><td></td><td class="fieldArg">freq_threshold</td><td>percentage of vocabulary to prune, top and bottom (default: 0.0001)</td></tr><tr><td></td><td class="fieldArg">freq_min</td><td>minimum number of occurences for a word to be included (default: 1)</td></tr><tr><td></td><td class="fieldArg">stopword_path</td><td>path to stopwords in plaintext file</td></tr><tr><td></td><td class="fieldArg">pos_tags</td><td>list of str, use only these POS tags</td></tr></table></div>
+</div>
+</div><div class="basemethod private">
+<a name="tools.proc.SemanticModel._iter_docs">
+</a>
+<a name="//apple_ref/cpp/Method/tools.proc.SemanticModel._iter_docs"></a><a name="_iter_docs">
+</a>
+<div class="functionHeader">
+    
+    def
+    _iter_docs(self):
+    
+  </div>
+<div class="docstring functionBody">
+<div class="undocumented">Undocumented</div>
 </div>
 </div><div class="basemethod">
 <a name="tools.proc.SemanticModel.lda">
@@ -113,11 +131,13 @@
 <div class="functionHeader">
     
     def
-    lda(self, model_parameters):
+    lda(self, num_topics=100, chunksize=2000, passes=1, update_every=1, alpha='symmetric', eta=None, decay=0.5, offset=1.0, eval_every=10, iterations=50, gamma_threshold=0.001, minimum_probability=0.01, random_state=None, ns_conf=None, minimum_phi_value=0.01, per_word_topics=False):
     
   </div>
 <div class="docstring functionBody">
-<div><p>topic modeling/lda.py</p><table class="fieldTable"></table></div>
+<div><p>lda</p>
+<p>cf. 
+https://radimrehurek.com/gensim/models/ldamodel.html#gensim.models.ldamodel.LdaModel</p><table class="fieldTable"></table></div>
 </div>
 </div><div class="basemethod">
 <a name="tools.proc.SemanticModel.lsa">
@@ -127,11 +147,13 @@
 <div class="functionHeader">
     
     def
-    lsa(self, model_parameters):
+    lsa(self, num_topics=200, chunksize=20000, decay=1.0, onepass=True, power_iters=2, extra_samples=100):
     
   </div>
 <div class="docstring functionBody">
-<div><p>word embedding/lsa.py</p><table class="fieldTable"></table></div>
+<div><p>lsa</p>
+<p>cf. 
+https://radimrehurek.com/gensim/models/lsimodel.html#gensim.models.lsimodel.LsiModel</p><table class="fieldTable"></table></div>
 </div>
 </div><div class="basemethod">
 <a name="tools.proc.SemanticModel.word2vec">
@@ -141,11 +163,13 @@
 <div class="functionHeader">
     
     def
-    word2vec(self, model_parameters):
+    word2vec(self, size=100, alpha=0.025, window=5, min_count=5, max_vocab_size=None, sample=0.001, seed=1, workers=3, min_alpha=0.0001, sg=0, hs=0, negative=5, ns_exponent=0.75, cbow_mean=1, iter=5, null_word=0, trim_rule=None, sorted_vocab=1, batch_words=10000, compute_loss=False, max_final_vocab=None):
     
   </div>
 <div class="docstring functionBody">
-<div><p>neu</p><table class="fieldTable"></table></div>
+<div><p>word2vec</p>
+<p>cf. 
+https://radimrehurek.com/gensim/models/word2vec.html#gensim.models.word2vec.Word2Vec</p><table class="fieldTable"></table></div>
 </div>
 </div><div class="basemethod">
 <a name="tools.proc.SemanticModel.fasttext">
@@ -155,11 +179,13 @@
 <div class="functionHeader">
     
     def
-    fasttext(self, model_parameters):
+    fasttext(self, sg=0, hs=0, size=100, alpha=0.025, window=5, min_count=5, max_vocab_size=None, word_ngrams=1, sample=0.001, seed=1, workers=3, min_alpha=0.0001, negative=5, ns_exponent=0.75, cbow_mean=1, iter=5, null_word=0, min_n=3, max_n=6, sorted_vocab=1, bucket=2000000, trim_rule=None, batch_words=10000):
     
   </div>
 <div class="docstring functionBody">
-<div><p>neu</p><table class="fieldTable"></table></div>
+<div><p>fasttext</p>
+<p>cf. 
+https://radimrehurek.com/gensim/models/fasttext.html#gensim.models.fasttext.FastText</p><table class="fieldTable"></table></div>
 </div>
 </div><div class="basemethod">
 <a name="tools.proc.SemanticModel.save">
@@ -192,7 +218,7 @@
 </div>
 </div>
 <address>
-<a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-10-01 21:05:42.
+<a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-10-04 12:04:36.
       </address>
 </div>
 <script src="pydoctor.js" type="text/javascript"></script>

@@ -95,7 +95,7 @@ def strip_xml(path):
 	f = open(path+".txt", "w")
 
 	for element in result_iterator:
-	    f.write(str(element[0].text) + " " + str(element[1].text) + "\n\n")
+		f.write(str(element[0].text) + " " + str(element[1].text) + "\n\n")
 
 	f.close()
 
@@ -266,7 +266,7 @@ def graph_from_biadjacency_df(df):
 	@param df: biadjacency matrix as dataframe
 	@return: nx.Graph
 	"""
-	B = nx.Graph()
+	B = Graph()
 
 	"""
 	for i in df.index:
