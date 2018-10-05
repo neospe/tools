@@ -1,18 +1,18 @@
 """
 processing
 
+TODO
 
-TODO:
+	- semanticmodel: metadata management
+	   - als doc_labels vorhanden (= filename + doc id)
+	   - andere quellen: dataframe/excel tabellen ?
+	   - datatype: dict ?
+		  -> vgl. funktionen fuer uwue-korpora: selben datatype verwenden
 
-- semanticmodel: metadata management
-   - als doc_labels vorhanden (= filename + doc id)
-   - andere quellen: dataframe/excel tabellen ?
-   - datatype: dict ?
-	  -> vgl. funktionen fuer uwue-korpora: selben datatype verwenden
-- authorshipclf
-   - preproc erstellt list of docs + y pro doc
-   - preproc_stylome erstellt list of features + y pro feature -> auch in docs zusammenfassen?
-   
+	- authorship clf:
+	   - preproc erstellt list of docs + y pro doc
+	   - preproc_stylome erstellt list of features + y pro feature -> auch in docs zusammenfassen?
+
 """
 
 import numpy as np
@@ -26,8 +26,12 @@ from joblib import Parallel, delayed, load, dump
 from scipy.spatial.distance import cosine, euclidean, cityblock, jaccard
 from gensim.corpora import Dictionary
 from gensim.models import LdaModel, LsiModel, Word2Vec, FastText
-from sklearn.preprocessing import Imputer
+from sklearn.impute import SimpleImputer
 from sklearn.feature_extraction.text import CountVectorizer, DictVectorizer, TfidfVectorizer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.cross_validation import cross_val_score, ShuffleSplit
 from io import save_pkl, load_pkl, strip_symbols
 
 
@@ -50,7 +54,7 @@ def token_count(path, pos_filter=True, pos_exclude="PUNC", pos_column="CPOS"):
 	for filepath in glob(path):
 		if not filepath.startswith('.'):
 			try:
-				df = pd.read_csv(filepath, sep="\t")
+				df = pd.read_csv(filepath, sep=None)
 			except (pd.parser.CParserError) as detail:
 				print(filepath, detail)
 
@@ -85,7 +89,7 @@ def most_frequent(path, top_n, type_filter=True, pos_filter=True, pos_tag="NN", 
 	for filepath in glob(path):
 		if not filepath.startswith('.'):
 			try:
-				df = pd.read_csv(filepath, sep="\t")  #, quoting=csv.QUOTE_NONE)
+				df = pd.read_csv(filepath, sep=None)  #, quoting=csv.QUOTE_NONE)
 			except (pd.parser.CParserError) as detail:
 				print(filepath, detail)
 
@@ -112,9 +116,8 @@ def sim2dist(X):
 	"""
 	convert between similarity and distance matrix
 
-	goes both ways, expects distances between 0-1
-
-	pandas version: df.apply(lambda x: 1-x, raw=True)
+		- goes both ways, expects distances between 0-1
+		- pandas version: df.apply(lambda x: 1-x, raw=True)
 	"""
 	return X.vectorize(lambda x: 1-x)
 
@@ -577,7 +580,7 @@ class SemanticModel:
 
 			elif p.endswith(".csv") or p.endswith(".tsv"):
 				try:
-					df = pd.read_csv(p, sep="\t")  #, quoting=csv.QUOTE_NONE)
+					df = pd.read_csv(p, sep=None)  #, quoting=csv.QUOTE_NONE)
 				except (pd.parser.CParserError) as detail:
 					print(p, detail)
 	
@@ -700,7 +703,7 @@ class AuthorshipClassifier:
 			>>> auth = AuthorshipClassifier("~/Daten/authorship_corpus")
 			>>> auth.preproc()
 			>>> auth.train()
-			>>> auth.predict()
+			>>> auth.predict("unknown.txt")
 	"""
 	def __init__(self, corpus_path):
 		"""
@@ -712,8 +715,12 @@ class AuthorshipClassifier:
 		self.X = None
 		self.y = None
 		self.vec = None
+		self.clf = None
 		self.mfw = None
 		self.num_mfw = None
+		self.num_feat = None
+		self.imputer = None
+		self.info = []
 
 	def preproc(self, mfw=True, num_mfw=2000):
 		"""
@@ -735,7 +742,7 @@ class AuthorshipClassifier:
 					doc = f.read()
 			elif p.endswith(".csv") or p.endswith(".tsv"):
 				try:
-					df = pd.read_csv(p, sep="\t")  #, quoting=csv.QUOTE_NONE)
+					df = pd.read_csv(p, sep=None)  #, quoting=csv.QUOTE_NONE)
 				except (pd.parser.CParserError) as detail:
 					print(p, detail)
 				doc = " ".join(df['Token'].values.astype(str))
@@ -756,11 +763,9 @@ class AuthorshipClassifier:
 			
 		self.vec = CountVectorizer()
 		self.X = self.vec.fit_transform(docs)
+		self.info.append("preproc: mfw="+str(mfw)+", num_mfw="+str(num_mfw))
 
-		#imp = Imputer(missing_values='NaN', strategy='median', axis=0)
-		#self.X = imp.fit_transform(self.X)
-
-	def preproc_stylome(self, num_feat=700):
+	def preproc_stylome(self, num_feat=700, imputer="median"):
 		"""
 		preprocessing
 
@@ -769,8 +774,11 @@ class AuthorshipClassifier:
 		no plaintext support, needs POS information
 
 		@param num_feat: number of randomly selected features to use (default: 700)
+		@param imputer: imputer strategy to use ("mean", "median", "most_frequent", "constant" - default: "median")
 		"""
 		self.y = []
+		self.num_feat = num_feat
+		self.imputer = imputer
 		feats = []
 
 		paths = [p for p in glob(self.corpus_path) if not p.startswith(".")]
@@ -785,15 +793,17 @@ class AuthorshipClassifier:
 
 		data = pd.concat(feats, ignore_index=True)                      # merge into one dataframe
 
-		vec = DictVectorizer(sparse=False)
-		X = vec.fit_transform(data.T.to_dict().values())
+		self.vec = DictVectorizer(sparse=False)
+		self.X = self.vec.fit_transform(data.T.to_dict().values())
 
-		imp = Imputer(missing_values='NaN', strategy='median', axis=0)    # replace NaN
-		X = imp.fit_transform(X)
+		imp = SimpleImputer(missing_values="NaN", strategy="median", axis=0)    # replace NaN
+		self.X = imp.fit_transform(self.X)
+
+		self.info.append("preproc_stylome: num_feat="+str(num_feat)+", imputer="+str(imputer))
 
 	def _featureselect(self, path):
 		try:
-			df = pd.read_csv(path, sep="\t")  #, quoting=csv.QUOTE_NONE)
+			df = pd.read_csv(path, sep=None)  #, quoting=csv.QUOTE_NONE)
 		except (pd.parser.CParserError) as detail:
 			print(path, detail)
 		
@@ -887,8 +897,9 @@ class AuthorshipClassifier:
 
 		return d_class
 
-	def _token_in_textblock(text, token):        # returns number of blocks (consisting of 1/7th of the text)
-		blocks = []                             # in which the current token is found, in 4 classes: 1, 2-3,4-6,7
+	def _token_in_textblock(text, token):
+		# returns number of blocks (consisting of 1/7th of the text) in which the current token is found, in 4 classes: 1, 2-3,4-6,7
+		blocks = []
 		block_size = len(text)/7
 		last = no_of_blocks = 0
 
@@ -906,15 +917,97 @@ class AuthorshipClassifier:
 
 		return occur_class
 
-	def train(self):
+	def train(self, clf_type="randomforest", **kwargs):
 		"""
-		train classifier
-		"""
+		wrapper method for training
 
-	def predict(self, doc):
+		@param clf_type: "randomforest", "logistic", or "supportvector"
+		@param kwargs: pass any keyword arguments to the model, overriding its defaults
 		"""
-		classify document
+		if clf_type is "randomforest": self.randomforest(**kwargs)
+		elif clf_type is "maxentropy": self.maxentropy(**kwargs)
+		elif clf_type is "supportvector": self.supportvector(**kwargs)
+
+		# evaluation
+		cv = ShuffleSplit(self.X.shape[0], n_iter=5, test_size=0.125, random_state=4)
+		scores = cross_val_score(self.clf, self.X, self.y, cv=cv, n_jobs=-1)
+		print("cross validation/mean accuracy: %0.2f (+/- %0.2f)\n" % (scores.mean(), scores.std() * 2))
+
+	def randomforest(self, n_estimators=100, criterion="gini", max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features="auto", max_leaf_nodes=None, min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, class_weight=None):
 		"""
+		Random Forest classifier
+
+		cf. http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
+		"""
+		self.clf = RandomForestClassifier(n_estimators=n_estimators, criterion=criterion, max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf, min_weight_fraction_leaf=min_weight_fraction_leaf, max_features=max_features, max_leaf_nodes=max_leaf_nodes, min_impurity_decrease=min_impurity_decrease, min_impurity_split=min_impurity_split, bootstrap=bootstrap, oob_score=oob_score, n_jobs=n_jobs, random_state=random_state, verbose=verbose, warm_start=warm_start, class_weight=class_weight)
+		self.clf.fit(self.X, self.y)
+
+		# save model parameters
+		frame = currentframe()
+		args, _, _, values = getargvalues(frame)
+		self.info += [a+"="+v for a, v in zip(args, values)]
+
+	def maxentropy(self, penalty="l2", dual=False, tol=0.0001, C=1.0, fit_intercept=True, intercept_scaling=1, class_weight=None, random_state=None, solver="lbfgs", max_iter=100, multi_class="auto", verbose=0, warm_start=False, n_jobs=None):
+		"""
+		Logistic Regression (aka logit, MaxEnt) classifier
+
+		cf. http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+		"""
+		self.clf = LogisticRegression(penalty=penalty, dual=dual, tol=tol, C=C, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, class_weight=class_weight, random_state=random_state, solver=solver, max_iter=max_iter, multi_class=multi_class, verbose=verbose, warm_start=warm_start, n_jobs=n_jobs)
+		self.clf.fit(self.X, self.y)
+
+		# save model parameters
+		frame = currentframe()
+		args, _, _, values = getargvalues(frame)
+		self.info += [a+"="+v for a, v in zip(args, values)]
+
+	def supportvector(self, C=1.0, kernel="rbf", degree=3, gamma="auto", coef0=0.0, shrinking=True, probability=False, tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, decision_function_shape="ovr", random_state=None):
+		"""
+		C-Support Vector classifier
+
+		cf. http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
+		"""
+		self.clf = SVC(C=C, kernel=kernel, degree=degree, gamma=gamma, coef0=coef0, shrinking=shrinking, probability=probability, tol=tol, cache_size=cache_size, class_weight=class_weight, verbose=verbose, max_iter=max_iter, decision_function_shape=decision_function_shape, random_state=random_state)
+		self.clf.fit(self.X, self.y)
+
+		# save model parameters
+		frame = currentframe()
+		args, _, _, values = getargvalues(frame)
+		self.info += [a+"="+v for a, v in zip(args, values)]
+
+	def predict(self, path):
+		"""
+		predict document author
+
+		@param path: path to document
+		"""
+		if path.endswith(".txt"):
+			with open(path, "r") as f:
+				doc = f.read()
+				X_test = self.vec.transform([doc])
+		elif path.endswith(".csv") or path.endswith(".tsv"):
+			if "preproc_stylome" in self.info[0]:
+				feat = self._featureselect(path)
+				rows = np.random.choice(feat.index.values, self.num_feat)
+				feat = feat.ix[rows]
+
+				X_test = self.vec.transform(feat.T.to_dict().values())
+				imp = SimpleImputer(missing_values="NaN", strategy=self.imputer, axis=0)
+				X_test = imp.fit_transform(X_test)
+			else:
+				try:
+					df = pd.read_csv(path, sep=None)  #, quoting=csv.QUOTE_NONE)
+				except (pd.parser.CParserError) as detail:
+					print(path, detail)
+				doc = " ".join(df['Token'].values.astype(str))
+				X_test = self.vec.transform([doc])
+
+		# prediction
+		y_pred = self.clf.predict(X_test)
+		c = Counter(y_pred)
+		c_key = list(c.keys())
+		c_val = list(c.values())
+		print(c_key[0], c_val[0]/(sum(c.values())/100), "% - ", c_key[1], c_val[1]/(sum(c.values())/100), "%")
 
 	def save(self, path="AuthorshipClassifier.pkl"):
 		"""

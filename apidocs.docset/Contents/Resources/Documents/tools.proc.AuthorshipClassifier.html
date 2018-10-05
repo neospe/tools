@@ -35,7 +35,7 @@
 <span class="py-prompt">&gt;&gt;&gt; </span>auth = AuthorshipClassifier(<span class="py-string">"~/Daten/authorship_corpus"</span>)
 <span class="py-prompt">&gt;&gt;&gt; </span>auth.preproc()
 <span class="py-prompt">&gt;&gt;&gt; </span>auth.train()
-<span class="py-prompt">&gt;&gt;&gt; </span>auth.predict()</pre>
+<span class="py-prompt">&gt;&gt;&gt; </span>auth.predict(<span class="py-string">"unknown.txt"</span>)</pre>
 </li>
 </ul><table class="fieldTable"></table></div>
 </div>
@@ -56,11 +56,23 @@
 </tr><tr class="method">
 <td>Method</td>
 <td><a class="code" data-type="Method" href="tools.proc.AuthorshipClassifier.html#train">train</a></td>
-<td><span>train classifier</span></td>
+<td><span>wrapper method for training</span></td>
+</tr><tr class="method">
+<td>Method</td>
+<td><a class="code" data-type="Method" href="tools.proc.AuthorshipClassifier.html#randomforest">randomforest</a></td>
+<td><span>Random Forest classifier</span></td>
+</tr><tr class="method">
+<td>Method</td>
+<td><a class="code" data-type="Method" href="tools.proc.AuthorshipClassifier.html#maxentropy">maxentropy</a></td>
+<td><span>Logistic Regression (aka logit, MaxEnt) classifier</span></td>
+</tr><tr class="method">
+<td>Method</td>
+<td><a class="code" data-type="Method" href="tools.proc.AuthorshipClassifier.html#supportvector">supportvector</a></td>
+<td><span>C-Support Vector classifier</span></td>
 </tr><tr class="method">
 <td>Method</td>
 <td><a class="code" data-type="Method" href="tools.proc.AuthorshipClassifier.html#predict">predict</a></td>
-<td><span>classify document</span></td>
+<td><span>predict document author</span></td>
 </tr><tr class="method">
 <td>Method</td>
 <td><a class="code" data-type="Method" href="tools.proc.AuthorshipClassifier.html#save">save</a></td>
@@ -122,14 +134,16 @@ be in the format "author - title"</td></tr></table></div>
 <div class="functionHeader">
     
     def
-    preproc_stylome(self, num_feat=700):
+    preproc_stylome(self, num_feat=700, imputer='median'):
     
   </div>
 <div class="docstring functionBody">
 <div><p>preprocessing</p>
 <p>cf. van Halteren et al. - New Machine Learning Methods Demonstrate the 
 Existence of a Human Stylome</p>
-<p>no plaintext support, needs POS information</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">num_feat</td><td>number of randomly selected features to use (default: 700)</td></tr></table></div>
+<p>no plaintext support, needs POS information</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">num_feat</td><td>number of randomly selected features to use (default: 700)</td></tr><tr><td></td><td class="fieldArg">imputer</td><td>imputer strategy to use ("mean", "median", 
+"most_frequent", "constant" - default: 
+"median")</td></tr></table></div>
 </div>
 </div><div class="basemethod private">
 <a name="tools.proc.AuthorshipClassifier._featureselect">
@@ -181,11 +195,60 @@ Existence of a Human Stylome</p>
 <div class="functionHeader">
     
     def
-    train(self):
+    train(self, clf_type='randomforest', **kwargs):
     
   </div>
 <div class="docstring functionBody">
-<div><p>train classifier</p><table class="fieldTable"></table></div>
+<div><p>wrapper method for training</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">type</td><td>"randomforest", "logistic", or 
+"supportvector"</td></tr><tr><td></td><td class="fieldArg">kwargs</td><td>pass any keyword arguments to the model, overriding its defaults</td></tr></table></div>
+</div>
+</div><div class="basemethod">
+<a name="tools.proc.AuthorshipClassifier.randomforest">
+</a>
+<a name="//apple_ref/cpp/Method/tools.proc.AuthorshipClassifier.randomforest"></a><a name="randomforest">
+</a>
+<div class="functionHeader">
+    
+    def
+    randomforest(self, n_estimators=100, criterion='gini', max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='auto', max_leaf_nodes=None, min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, class_weight=None):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>Random Forest classifier</p>
+<p>cf. 
+http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basemethod">
+<a name="tools.proc.AuthorshipClassifier.maxentropy">
+</a>
+<a name="//apple_ref/cpp/Method/tools.proc.AuthorshipClassifier.maxentropy"></a><a name="maxentropy">
+</a>
+<div class="functionHeader">
+    
+    def
+    maxentropy(self, penalty='l2', dual=False, tol=0.0001, C=1.0, fit_intercept=True, intercept_scaling=1, class_weight=None, random_state=None, solver='lbfgs', max_iter=100, multi_class='auto', verbose=0, warm_start=False, n_jobs=None):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>Logistic Regression (aka logit, MaxEnt) classifier</p>
+<p>cf. 
+http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basemethod">
+<a name="tools.proc.AuthorshipClassifier.supportvector">
+</a>
+<a name="//apple_ref/cpp/Method/tools.proc.AuthorshipClassifier.supportvector"></a><a name="supportvector">
+</a>
+<div class="functionHeader">
+    
+    def
+    supportvector(self, C=1.0, kernel='rbf', degree=3, gamma='auto', coef0=0.0, shrinking=True, probability=False, tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=-1, decision_function_shape='ovr', random_state=None):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>C-Support Vector classifier</p>
+<p>cf. 
+http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html</p><table class="fieldTable"></table></div>
 </div>
 </div><div class="basemethod">
 <a name="tools.proc.AuthorshipClassifier.predict">
@@ -195,11 +258,11 @@ Existence of a Human Stylome</p>
 <div class="functionHeader">
     
     def
-    predict(self, doc):
+    predict(self, path):
     
   </div>
 <div class="docstring functionBody">
-<div><p>classify document</p><table class="fieldTable"></table></div>
+<div><p>predict document author</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">path</td><td>path to document</td></tr></table></div>
 </div>
 </div><div class="basemethod">
 <a name="tools.proc.AuthorshipClassifier.save">
@@ -232,7 +295,7 @@ Existence of a Human Stylome</p>
 </div>
 </div>
 <address>
-<a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-10-05 00:31:21.
+<a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-10-05 15:54:58.
       </address>
 </div>
 <script src="pydoctor.js" type="text/javascript"></script>

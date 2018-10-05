@@ -50,8 +50,8 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
     - met-cluster/cluster.py, dist_to_sim: df -> df * 
     - topic modeling/lda.py: dof dir -> filter, norm, vec -> model * 
     - word embedding/lsa.py: txt dir -> model * 
-    - van halteren/clf_alltokens.py: dof dir -> vec, clf, crossval -> predict
-    - van halteren/vh_tutorial.py: dof dir -> featsel, vec, clf, crossval -> predict
+    - van halteren/clf_alltokens.py: dof dir -> vec, clf, crossval -> predict * 
+    - van halteren/vh_tutorial.py: dof dir -> featsel, vec, clf, crossval -> predict * 
     - met-sampler/classify.py, tfidf_calculate: dof dir -> df, clf
     - met-sampler/classify.py, tfidf_classify: clf, df, str -> bool
     - neu
@@ -62,6 +62,7 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
     - word embedding/lsa.py: model -> tsne, cluster
     - topic modeling/lda_heatmap.py: model -> sort -> img
     - topic modeling/lda_network.py: model -> nx graph -> img
+    - van halteren/vh_tutorial.py: clf decision surfaces -> img
     - met-cluster/cluster.py, plot_graph, plot_bi_graph: nx graph, labels -> img
     - met-cluster/cluster.py, plot_matrix_sorted: np array, labels -> img
     - met-cluster/cluster.py, weiter unten: dendrogramm etc.
