@@ -33,7 +33,75 @@
 <tr class="function">
 <td>Function</td>
 <td><a class="code" data-type="Function" href="tools.vis.html#plot_matrix">plot_matrix</a></td>
+<td><span>plot matrix</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#plot_matrix_sorted">plot_matrix_sorted</a></td>
+<td><span>plot matrix sorted by clustering + silhouette-coefficient</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#plot_graph">plot_graph</a></td>
+<td><span>plot networkx graph</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#plot_bi_graph">plot_bi_graph</a></td>
+<td><span>plot networkx bipartite graph</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#plot_histogram">plot_histogram</a></td>
+<td><span>plot histogram</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#plot_dendrogram">plot_dendrogram</a></td>
+<td><span>plot dendrogram</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#search_tree">search_tree</a></td>
 <td><span class="undocumented">Undocumented</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#llf">llf</a></td>
+<td><span class="undocumented">Undocumented</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#label_lookup">label_lookup</a></td>
+<td><span class="undocumented">Undocumented</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#tsne_cluster">tsne_cluster</a></td>
+<td><span>word embedding/doc2vec.py + lsa.py: model -&gt; tsne, cluster</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#lda_heatmap">lda_heatmap</a></td>
+<td><span>topic modeling/lda_heatmap.py: model -&gt; sort -&gt; img</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#lda_network">lda_network</a></td>
+<td><span>topic modeling/lda_network.py: model -&gt; nx graph -&gt; img</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#scatterplot_decision_surface">scatterplot_decision_surface</a></td>
+<td><span>van halteren/vh_tutorial.py: clf decision surfaces -&gt; img</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#plot_fuzzyclustering">plot_fuzzyclustering</a></td>
+<td><span>cf. met-cluster/cluster.py</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#scatterplot_hexbin">scatterplot_hexbin</a></td>
+<td><span>cf. met-cluster/cluster.py</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#scatterplot_hdbscan">scatterplot_hdbscan</a></td>
+<td><span>cf. met-cluster/cluster.py</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#scatterplot_3d">scatterplot_3d</a></td>
+<td><span>cf. met-cluster/cluster.py</span></td>
+</tr><tr class="function">
+<td>Function</td>
+<td><a class="code" data-type="Function" href="tools.vis.html#matrix_dendrogram">matrix_dendrogram</a></td>
+<td><span>cf. met-cluster/cluster.py</span></td>
 </tr>
 </table>
 </div>
@@ -50,12 +118,256 @@
     
   </div>
 <div class="docstring functionBody">
+<div><p>plot matrix</p>
+<p>cf. met-cluster/features.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.plot_matrix_sorted">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.plot_matrix_sorted"></a><a name="plot_matrix_sorted">
+</a>
+<div class="functionHeader">
+    
+    def
+    plot_matrix_sorted(W, B, clust_labels, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>plot matrix sorted by clustering + silhouette-coefficient</p>
+<p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.plot_graph">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.plot_graph"></a><a name="plot_graph">
+</a>
+<div class="functionHeader">
+    
+    def
+    plot_graph(G, labels, fileout):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>plot networkx graph</p>
+<p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.plot_bi_graph">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.plot_bi_graph"></a><a name="plot_bi_graph">
+</a>
+<div class="functionHeader">
+    
+    def
+    plot_bi_graph(B, labels, fileout):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>plot networkx bipartite graph</p>
+<p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.plot_histogram">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.plot_histogram"></a><a name="plot_histogram">
+</a>
+<div class="functionHeader">
+    
+    def
+    plot_histogram(years):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>plot histogram</p>
+<p>cf. met-cluster/corpus.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.plot_dendrogram">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.plot_dendrogram"></a><a name="plot_dendrogram">
+</a>
+<div class="functionHeader">
+    
+    def
+    plot_dendrogram(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>plot dendrogram</p>
+<p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.search_tree">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.search_tree"></a><a name="search_tree">
+</a>
+<div class="functionHeader">
+    
+    def
+    search_tree(tree, id):
+    
+  </div>
+<div class="docstring functionBody">
 <div class="undocumented">Undocumented</div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.llf">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.llf"></a><a name="llf">
+</a>
+<div class="functionHeader">
+    
+    def
+    llf(id):
+    
+  </div>
+<div class="docstring functionBody">
+<div class="undocumented">Undocumented</div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.label_lookup">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.label_lookup"></a><a name="label_lookup">
+</a>
+<div class="functionHeader">
+    
+    def
+    label_lookup(id):
+    
+  </div>
+<div class="docstring functionBody">
+<div class="undocumented">Undocumented</div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.tsne_cluster">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.tsne_cluster"></a><a name="tsne_cluster">
+</a>
+<div class="functionHeader">
+    
+    def
+    tsne_cluster(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>word embedding/doc2vec.py + lsa.py: model -&gt; tsne, cluster</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.lda_heatmap">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.lda_heatmap"></a><a name="lda_heatmap">
+</a>
+<div class="functionHeader">
+    
+    def
+    lda_heatmap(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>topic modeling/lda_heatmap.py: model -&gt; sort -&gt; img</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.lda_network">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.lda_network"></a><a name="lda_network">
+</a>
+<div class="functionHeader">
+    
+    def
+    lda_network(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>topic modeling/lda_network.py: model -&gt; nx graph -&gt; img</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.scatterplot_decision_surface">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.scatterplot_decision_surface"></a><a name="scatterplot_decision_surface">
+</a>
+<div class="functionHeader">
+    
+    def
+    scatterplot_decision_surface(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>van halteren/vh_tutorial.py: clf decision surfaces -&gt; img</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.plot_fuzzyclustering">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.plot_fuzzyclustering"></a><a name="plot_fuzzyclustering">
+</a>
+<div class="functionHeader">
+    
+    def
+    plot_fuzzyclustering(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.scatterplot_hexbin">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.scatterplot_hexbin"></a><a name="scatterplot_hexbin">
+</a>
+<div class="functionHeader">
+    
+    def
+    scatterplot_hexbin(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.scatterplot_hdbscan">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.scatterplot_hdbscan"></a><a name="scatterplot_hdbscan">
+</a>
+<div class="functionHeader">
+    
+    def
+    scatterplot_hdbscan(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.scatterplot_3d">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.scatterplot_3d"></a><a name="scatterplot_3d">
+</a>
+<div class="functionHeader">
+    
+    def
+    scatterplot_3d(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+</div>
+</div><div class="basefunction">
+<a name="tools.vis.matrix_dendrogram">
+</a>
+<a name="//apple_ref/cpp/Function/tools.vis.matrix_dendrogram"></a><a name="matrix_dendrogram">
+</a>
+<div class="functionHeader">
+    
+    def
+    matrix_dendrogram(X, outfile):
+    
+  </div>
+<div class="docstring functionBody">
+<div><p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
 </div>
 </div>
 </div>
 <address>
-<a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-10-05 22:11:42.
+<a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-10-06 00:16:22.
       </address>
 </div>
 <script src="pydoctor.js" type="text/javascript"></script>

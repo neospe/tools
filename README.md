@@ -66,7 +66,7 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
     - met-cluster/cluster.py, plot_matrix_sorted: np array, labels -> img
     - met-cluster/cluster.py, weiter unten: dendrogramm etc.
     - met-cluster/corpus.py, plot_docs_years: years list -> img
-- misc
+- misc (-> nach io?)
     - helper/doc_split.py: txt -> txt dir
     - met-cluster/corpus.py, select_romankorpus: pkl dir, metadaten -> paths list, years list
     - met-cluster/corpus.py, select_gutenberg: pkl dir, xml dir -> paths list, years list
