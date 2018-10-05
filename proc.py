@@ -3,8 +3,6 @@ processing
 
 TODO
 
-	- txt file versions: token_count, most_frequent
-
 	- metadata management
 	   - als doc_labels vorhanden (= filename + doc id)
 	   - andere quellen: dataframe/excel tabellen ?
@@ -44,7 +42,7 @@ def token_count(path, pos_filter=True, pos_exclude="PUNC", pos_column="CPOS"):
 		
 			>>> size = token_count("~/Daten/romankorpus")
 
-	@param path: path to directory containing CoNLL2009/DOF files (tab-delimited)
+	@param path: path to directory containing txt, csv, or tsv files
 	@param pos_filter: filter by POS tag (default: True)
 	@param pos_exclude: POS tag to excude (default: "PUNC")
 	@param pos_column: name of POS column (default: "CPOS")
@@ -52,16 +50,20 @@ def token_count(path, pos_filter=True, pos_exclude="PUNC", pos_column="CPOS"):
 	"""
 	count = 0
 
-	for filepath in glob(path):
-		if not filepath.startswith('.'):
+	paths = [p for p in glob(path) if not p.startswith(".")]
+	for p in paths:
+		if p.endswith(".txt"):
+			with open(p, "r") as f:
+				count += len(f.read().split(" "))
+		elif p.endswith(".csv") or p.endswith(".tsv"):
 			try:
-				df = pd.read_csv(filepath, sep=None)
+				df = pd.read_csv(p, sep=None)  #, quoting=csv.QUOTE_NONE)
 			except (pd.parser.CParserError) as detail:
-				print(filepath, detail)
+				print(p, detail)
 
 			if pos_filter is True:
 				pos = df.groupby(pos_column)
-				df = df.drop(pos.get_group(pos_exclude).index)       # don't count the punctuation
+				df = df.drop(pos.get_group(pos_exclude).index)
 
 			count += len(df.index)
 
@@ -77,7 +79,7 @@ def most_frequent(path, top_n, type_filter=True, pos_filter=True, pos_tag="NN", 
 			>>> mfn_dict = most_frequent("~/Daten/romankorpus", 50000, pos_tag="NN")
 			>>> tokens_dict = most_frequent("~/Daten/romankorpus", 150000, type=False, pos=False)
 
-	@param path: path to directory containing CoNLL2009/DOF files (tab-delimited)
+	@param path: path to directory containing txt, csv, or tsv files
 	@param top_n: number of most frequent items to return
 	@param type_filter: count types only (expects "Lemma" column, default: True)
 	@param pos_filter: count pos_tag only (default: True)
@@ -87,12 +89,16 @@ def most_frequent(path, top_n, type_filter=True, pos_filter=True, pos_tag="NN", 
 	"""
 	tokens = []
 
-	for filepath in glob(path):
-		if not filepath.startswith('.'):
+	paths = [p for p in glob(path) if not p.startswith(".")]
+	for p in paths:
+		if p.endswith(".txt"):
+			with open(p, "r") as f:
+				tokens += [strip_symbols(token.lower()) for token in f.read().split(" ")]
+		elif p.endswith(".csv") or p.endswith(".tsv"):
 			try:
-				df = pd.read_csv(filepath, sep=None)  #, quoting=csv.QUOTE_NONE)
+				df = pd.read_csv(p, sep=None)  #, quoting=csv.QUOTE_NONE)
 			except (pd.parser.CParserError) as detail:
-				print(filepath, detail)
+				print(p, detail)
 
 			if pos_filter is True:
 				df_grouped = df.groupby(pos_column)
@@ -1036,7 +1042,7 @@ class TFIDFSentenceClassifier:
 		
 			>>> metaphor_clf = TFIDFSentenceClassifier("~/Daten/romankorpus")
 			>>> metaphor_clf.train()
-			>>> auth.predict("Autos schossen aus schmalen, tiefen Straßen in die Seichtigkeit heller Plätze.")
+			>>> metaphor_clf.predict("Autos schossen aus schmalen, tiefen Straßen in die Seichtigkeit heller Plätze.")
 	"""
 	def __init__(self, corpus_path):
 		"""
