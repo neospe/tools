@@ -702,10 +702,10 @@ class AuthorshipClassifier:
 
 		- example:
 		
-			>>> auth = AuthorshipClassifier("~/Daten/authorship_corpus")
-			>>> auth.preproc()
-			>>> auth.train()
-			>>> auth.predict("unknown.txt")
+			>>> author_clf = AuthorshipClassifier("~/Daten/authorship_corpus")
+			>>> author_clf.preproc()
+			>>> author_clf.train()
+			>>> author_clf.predict("unknown.txt")
 	"""
 	def __init__(self, corpus_path):
 		"""
@@ -1029,7 +1029,15 @@ class AuthorshipClassifier:
 	
 
 class TFIDFSentenceClassifier:
+	"""
+	classify sentences as unusual/figurative
 
+		- example:
+		
+			>>> metaphor_clf = TFIDFSentenceClassifier("~/Daten/romankorpus")
+			>>> metaphor_clf.train()
+			>>> auth.predict("Autos schossen aus schmalen, tiefen Straßen in die Seichtigkeit heller Plätze.")
+	"""
 	def __init__(self, corpus_path):
 		"""
 		initialize
@@ -1077,7 +1085,7 @@ class TFIDFSentenceClassifier:
 
 	def predict(self, sent, threshold=0.001, min_len=1, max_len=30):
 		"""
-		classify sentences as unusual/figurative
+		classify sentence
 
 			- cf. Schulder & Hovy - Metaphor Detection through Term Relevance
 			- a basic threshold classifier: threshold depends on corpus size and min/max_df parameters of tf-idf (the more tokens are found in X, the larger the sentence score is). short/long sentences need their own thresholds
