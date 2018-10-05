@@ -3,13 +3,14 @@ processing
 
 TODO
 
-	- semanticmodel: metadata management
+	- txt file versions: token_count, most_frequent
+
+	- metadata management
 	   - als doc_labels vorhanden (= filename + doc id)
 	   - andere quellen: dataframe/excel tabellen ?
-	   - datatype: dict ?
-		  -> vgl. funktionen fuer uwue-korpora: selben datatype verwenden
+	   - datatype: dict ? -> vgl. funktionen fuer diss-korpora
 
-	- authorship clf:
+	- unklar bzgl. authorship clf:
 	   - preproc erstellt list of docs + y pro doc
 	   - preproc_stylome erstellt list of features + y pro feature -> auch in docs zusammenfassen?
 
@@ -78,8 +79,8 @@ def most_frequent(path, top_n, type_filter=True, pos_filter=True, pos_tag="NN", 
 
 	@param path: path to directory containing CoNLL2009/DOF files (tab-delimited)
 	@param top_n: number of most frequent items to return
-	@param type: count types only (expects "Lemma" column, default: True)
-	@param pos: count pos_tag only (default: True)
+	@param type_filter: count types only (expects "Lemma" column, default: True)
+	@param pos_filter: count pos_tag only (default: True)
 	@param pos_tag: target POS (default: "NN")
 	@param pos_column: name of POS column (default: "CPOS")
 	@return: dict
@@ -391,9 +392,7 @@ class SimilarityMatrix:
 
 		# max_nbytes threshold triggers automatic memmapping of input data
 		# cf. https://pythonhosted.org/joblib/parallel.html#working-with-numerical-data-in-shared-memory-memmaping
-		#res = Parallel(n_jobs=n_workers)(delayed(_calc_weight) (X, ind, metric) for ind in indices)
 		res = Parallel(n_jobs=n_workers, max_nbytes=1e6)(delayed(self._calc_weight) (X, ind, metric) for ind in indices)
-		
 		#print('Parallel, n_jobs=', n_workers, ': finished in', time.time()-now , 'sec\n')
 
 		result = []
@@ -479,8 +478,9 @@ class SemanticModel:
 		self.linesent_path = self.corpus_name+"-LineSentence.txt"
 		self.doc_split = None
 		self.doc_size = None
+		self.type_filter = None
 		self.freq_filter = None
-		self.freq_threshold = None  # percentage of all vocabulary items
+		self.freq_threshold = None
 		self.freq_min = None
 		self.freq_extremes = []
 		self.stopword_filter = None
@@ -495,11 +495,12 @@ class SemanticModel:
 		self.doc_labels = []  # metadata
 		self.info = []  # take note of model parameters
 
-	def preproc(self, doc_split=False, doc_size=1000, freq_filter=False, freq_threshold=0.0001, freq_min=1, stopword_filter=False, stopword_path="stopwords.txt", pos_filter=False, pos_tags=["ADJ", "NN", "V"], pos_column="CPOS"):
+	def preproc(self, doc_split=False, doc_size=1000, type_filter=True, freq_filter=False, freq_threshold=0.0001, freq_min=1, stopword_filter=False, stopword_path="stopwords.txt", pos_filter=False, pos_tags=["ADJ", "NN", "V"], pos_column="CPOS"):
 		"""
 		preprocessing
 
 		@param doc_size: slice input into documents of doc_size words (default: 1000)
+		@param type_filter: use types only (expects "Lemma" column, default: True)
 		@param freq_threshold: percentage of vocabulary to prune, top and bottom (default: 0.0001)
 		@param freq_min: minimum number of occurences for a word to be included (default: 1)
 		@param stopword_path: path to stopwords in plaintext file
@@ -507,6 +508,7 @@ class SemanticModel:
 		"""
 		self.doc_split = doc_split
 		self.doc_size = doc_size
+		self.type_filter = type_filter
 		self.freq_filter = freq_filter
 		self.freq_threshold = freq_threshold
 		self.freq_min = freq_min
@@ -597,7 +599,7 @@ class SemanticModel:
 					doc_df = df
 
 				# construct documents
-				if "Lemma" in doc_df.columns:
+				if self.type_filter is True and "Lemma" in doc_df.columns:
 					token_column = "Lemma"
 				else:
 					token_column = "Token"
@@ -606,17 +608,17 @@ class SemanticModel:
 					doc_df = doc_df.sort(columns='TokenId')
 					i = 1
 					while(self.doc_size < doc_df.shape[0]):
-						doc_str = " ".join(doc_df[:self.doc_size][token_column].values.astype(str))
+						doc_str = " ".join([word.split('|')[0] for word in doc_df[:self.doc_size][token_column].values.astype(str)])  # support treetagger format
 						doc = strip_symbols(doc_str).split(" ")
 						self.doc_labels.append(basename(p).split(".")[0]+" #"+str(i))  # metadata, e.g. used as plot labels
 						doc_df = doc_df.drop(doc_df.index[:self.doc_size])  # drop doc_size rows
 						i += 1
 						yield doc
 
-					doc_str = " ".join(doc_df[token_column].values.astype(str))  # add rest
+					doc_str = " ".join([word.split('|')[0] for word in doc_df[token_column].values.astype(str)])  # add rest
 					self.doc_labels.append(basename(p).split(".")[0]+" #"+str(i))
 				else:
-					doc_str = " ".join(doc_df[token_column].values.astype(str))
+					doc_str = " ".join([word.split('|')[0] for word in doc_df[token_column].values.astype(str)])
 					self.doc_labels.append(basename(p).split(".")[0]+" #"+str(i))
 				
 				doc = strip_symbols(doc_str).split(" ")
@@ -626,7 +628,7 @@ class SemanticModel:
 		"""
 		lda
 
-		cf. https://radimrehurek.com/gensim/models/ldamodel.html#gensim.models.ldamodel.LdaModel
+			- cf. https://radimrehurek.com/gensim/models/ldamodel.html#gensim.models.ldamodel.LdaModel
 		"""
 		self.model = LdaModel(corpus=self.bow_corpus, id2word=self.bow_dictionary, num_topics=num_topics, chunksize=chunksize, passes=passes, update_every=update_every, alpha=alpha, eta=eta, decay=decay, offset=offset, eval_every=eval_every, iterations=iterations, gamma_threshold=gamma_threshold, minimum_probability=minimum_probability, random_state=random_state, ns_conf=ns_conf, minimum_phi_value=minimum_phi_value, per_word_topics=per_word_topics)
 
@@ -639,7 +641,7 @@ class SemanticModel:
 		"""
 		lsa
 
-		cf. https://radimrehurek.com/gensim/models/lsimodel.html#gensim.models.lsimodel.LsiModel
+			- cf. https://radimrehurek.com/gensim/models/lsimodel.html#gensim.models.lsimodel.LsiModel
 		"""
 		self.model = LsiModel(corpus=self.bow_corpus, id2word=self.bow_dictionary, num_topics=num_topics, chunksize=chunksize, decay=decay, onepass=onepass, power_iters=power_iters, extra_samples=extra_samples)
 
@@ -652,7 +654,7 @@ class SemanticModel:
 		"""
 		word2vec
 
-		cf. https://radimrehurek.com/gensim/models/word2vec.html#gensim.models.word2vec.Word2Vec
+			- cf. https://radimrehurek.com/gensim/models/word2vec.html#gensim.models.word2vec.Word2Vec
 		"""
 		self.model = Word2Vec(corpus_file=self.linesent_path, size=size, alpha=alpha, window=window, min_count=min_count, max_vocab_size=max_vocab_size, sample=sample, seed=seed, workers=workers, min_alpha=min_alpha, sg=sg, hs=hs, negative=negative, ns_exponent=ns_exponent, cbow_mean=cbow_mean, iter=iter, null_word=null_word, trim_rule=trim_rule, sorted_vocab=sorted_vocab, batch_words=batch_words, compute_loss=compute_loss, max_final_vocab=max_final_vocab)
 
@@ -665,7 +667,7 @@ class SemanticModel:
 		"""
 		fasttext
 
-		cf. https://radimrehurek.com/gensim/models/fasttext.html#gensim.models.fasttext.FastText
+			- cf. https://radimrehurek.com/gensim/models/fasttext.html#gensim.models.fasttext.FastText
 		"""
 		self.model = FastText(corpus_file=self.linesent_path, sg=sg, hs=hs, size=size, alpha=alpha, window=window, min_count=min_count, max_vocab_size=max_vocab_size, word_ngrams=word_ngrams, sample=sample, seed=seed, workers=workers, min_alpha=min_alpha, negative=negative, ns_exponent=ns_exponent, cbow_mean=cbow_mean, iter=iter, null_word=null_word, min_n=min_n, max_n=max_n, sorted_vocab=sorted_vocab, bucket=bucket, trim_rule=trim_rule, batch_words=batch_words)
 
@@ -769,9 +771,8 @@ class AuthorshipClassifier:
 		"""
 		preprocessing
 
-		cf. van Halteren et al. - New Machine Learning Methods Demonstrate the Existence of a Human Stylome
-
-		no plaintext support, needs POS information
+			- cf. van Halteren et al. - New Machine Learning Methods Demonstrate the Existence of a Human Stylome
+			- no plaintext support, needs POS information
 
 		@param num_feat: number of randomly selected features to use (default: 700)
 		@param imputer: imputer strategy to use ("mean", "median", "most_frequent", "constant" - default: "median")
@@ -876,14 +877,11 @@ class AuthorshipClassifier:
 	def _distance_to_previous(curr_tok_id, curr_sent_id, occurrences):
 		# returns distance in sentences to the previous occurrence
 		# of the current token (in 7 classes: NONE, SAME, 1, 2-3,4-7,8-15,16+
-
 		occurrences = occurrences.reset_index()                             # add new index from 0 .. len(occurrences.index)
-
 		current_key = occurrences[occurrences['TokenId'] == curr_tok_id].index[0]   # get row corresponding to curr_tok_id + its new index value
 
 		if current_key > 0:                                                 # there is more than one && its not the first occurrence
 			prev_sent_id = int(occurrences.iloc[current_key-1, 1])          # get previous sentence id based on that index
-
 			dist = curr_sent_id - prev_sent_id
 
 			if dist == 0: d_class = 2
@@ -898,7 +896,8 @@ class AuthorshipClassifier:
 		return d_class
 
 	def _token_in_textblock(text, token):
-		# returns number of blocks (consisting of 1/7th of the text) in which the current token is found, in 4 classes: 1, 2-3,4-6,7
+		# returns number of blocks (consisting of 1/7th of the text)
+		# in which the current token is found, in 4 classes: 1, 2-3,4-6,7
 		blocks = []
 		block_size = len(text)/7
 		last = no_of_blocks = 0
@@ -937,7 +936,7 @@ class AuthorshipClassifier:
 		"""
 		Random Forest classifier
 
-		cf. http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
+			- cf. http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
 		"""
 		self.clf = RandomForestClassifier(n_estimators=n_estimators, criterion=criterion, max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf, min_weight_fraction_leaf=min_weight_fraction_leaf, max_features=max_features, max_leaf_nodes=max_leaf_nodes, min_impurity_decrease=min_impurity_decrease, min_impurity_split=min_impurity_split, bootstrap=bootstrap, oob_score=oob_score, n_jobs=n_jobs, random_state=random_state, verbose=verbose, warm_start=warm_start, class_weight=class_weight)
 		self.clf.fit(self.X, self.y)
@@ -951,7 +950,7 @@ class AuthorshipClassifier:
 		"""
 		Logistic Regression (aka logit, MaxEnt) classifier
 
-		cf. http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+			- cf. http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
 		"""
 		self.clf = LogisticRegression(penalty=penalty, dual=dual, tol=tol, C=C, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, class_weight=class_weight, random_state=random_state, solver=solver, max_iter=max_iter, multi_class=multi_class, verbose=verbose, warm_start=warm_start, n_jobs=n_jobs)
 		self.clf.fit(self.X, self.y)
@@ -965,7 +964,7 @@ class AuthorshipClassifier:
 		"""
 		C-Support Vector classifier
 
-		cf. http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
+			- cf. http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
 		"""
 		self.clf = SVC(C=C, kernel=kernel, degree=degree, gamma=gamma, coef0=coef0, shrinking=shrinking, probability=probability, tol=tol, cache_size=cache_size, class_weight=class_weight, verbose=verbose, max_iter=max_iter, decision_function_shape=decision_function_shape, random_state=random_state)
 		self.clf.fit(self.X, self.y)
@@ -979,7 +978,7 @@ class AuthorshipClassifier:
 		"""
 		predict document author
 
-		@param path: path to document
+		@param path: path to test document
 		"""
 		if path.endswith(".txt"):
 			with open(path, "r") as f:
@@ -1038,24 +1037,72 @@ class TFIDFSentenceClassifier:
 		@param corpus_path: path to directory containing txt, csv, or tsv files
 		"""
 		self.corpus_path = corpus_path
+		self.vec = None
+		self.X = None
+		self.info = []
 
-	def preproc(self):
+	def train(self, max_df=0.5, min_df=1, type_filter=True):
 		"""
-		preprocessing
-		"""
+		calculate tf-idf scores
 
-	def train(self):
-		"""
-		aka calculate tfidf scores
-		"""
-		return df, clf
+			- cf. http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html
 
+		@param max_df: ignore terms that have a document frequency higher than the given threshold. float = proportion of documents, int = absolute count (default: 0.5)
+		@param min_df: ignore terms that have a document frequency lower than the given threshold. otherwise same as max_df (default: 1)
+		@param type_filter: use types only (expects "Lemma" column, default: True)
+		"""
+		docs = []
+		paths = [p for p in glob(self.corpus_path) if not p.startswith(".")]
+		for p in paths:
+			if p.endswith(".txt"):
+				with open(p, "r") as f:
+					docs.append(f.read())
+			elif p.endswith(".csv") or p.endswith(".tsv"):
+				try:
+					df = pd.read_csv(p, sep=None)  #, quoting=csv.QUOTE_NONE)
+				except (pd.parser.CParserError) as detail:
+					print(p, detail)
+				
+				if type_filter is True and "Lemma" in df.columns:
+					docs.append(" ".join([lemma.split('|')[0] for lemma in df['Lemma'].values.astype(str)]))  # support treetagger format
+				else:
+					docs.append(" ".join(df['Token'].values.astype(str)))
 
-	def predict(self, df, str):
+		self.vec = TfidfVectorizer(input="content", strip_accents="unicode", lowercase=False, max_df=max_df, min_df=min_df, vocabulary=None, norm="l1", sublinear_tf=True)
+		X_tmp = self.vec.fit_transform(docs)    # cf. http://www.deeplearning.net/software/theano/library/sparse/#csr-matrix
+		self.X = pd.DataFrame(X_tmp.data, index=X_tmp.indices)    # build dataframe from csr matrix for easier handling
+		self.X.sort_index(inplace=True)
+
+		self.info.append("train: max_df="+str(max_df)+", min_df="+str(min_df)+", type_filter="+str(type_filter))
+
+	def predict(self, sent, threshold=0.001, min_len=1, max_len=30):
 		"""
-		met-sampler/classify.py
+		classify sentences as unusual/figurative
+
+			- cf. Schulder & Hovy - Metaphor Detection through Term Relevance
+			- a basic threshold classifier: threshold depends on corpus size and min/max_df parameters of tf-idf (the more tokens are found in X, the larger the sentence score is). short/long sentences need their own thresholds
+
+		@param sent: sentence as string
+		@param threshold: unusual/figurative if cumulative sentence tf-idf score < threshold (default: 0.001)
+		@param min_len: minimum sentence length for this threshold (default: 1)
+		@param max_len: maximum sentence length for this threshold (default: 30)
+		@return: bool (or None when: score == 0, sentence length > max_len)
 		"""
-		return boolean
+		sent_len = len(sent.split(" "))
+		word_scores = self.vec.transform([sent])
+		sent_score = 0.0
+		for i in word_scores.indices:
+			sent_score += self.X.iloc[i][0]  # look up tf-idf score for each word
+
+		info_str = "predict: threshold="+str(threshold)+", min_len="+str(min_len)+", max_len="+str(max_len)
+		if self.info[-1] != info_str: self.info.append(info_str)  # save new parameters
+
+		if sent_score < threshold and sent_score != 0.0 and sent_len >= min_len:
+			return True
+		elif sent_score > threshold and sent_len <= max_len:
+			return False
+		else:
+			return None
 
 	def save(self, path="TFIDFSentenceClassifier.pkl"):
 		"""

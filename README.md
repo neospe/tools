@@ -7,8 +7,8 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
 
 - docstrings schreiben
 - neue komponenten
-    - platzhalter-funktionen aus code fundus: docstrings inkl. beschreibung + links
     - **bzgl. diss refactoring**: eine klasse für integrierten zugriff auf daten+metadaten der diss-korpora
+    - platzhalter-funktionen aus code fundus: docstrings inkl. beschreibung + links
     - preprocessing methoden der klassen könnten tlw. durch eine korpus-klasse ersetzt werden
         - das könnte allerdings auch gegen die lesbarkeit gehen weil sehr viele optionen für eine klasse
 
