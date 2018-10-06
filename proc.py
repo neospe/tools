@@ -1,17 +1,5 @@
 """
 processing
-
-TODO
-
-	- metadata management
-	   - als doc_labels vorhanden (= filename + doc id)
-	   - andere quellen: dataframe/excel tabellen ?
-	   - datatype: dict ? -> vgl. funktionen fuer diss-korpora
-
-	- unklar bzgl. authorship clf:
-	   - preproc erstellt list of docs + y pro doc
-	   - preproc_stylome erstellt list of features + y pro feature -> auch in docs zusammenfassen?
-
 """
 
 import numpy as np

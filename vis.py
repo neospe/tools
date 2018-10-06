@@ -2,54 +2,59 @@
 visualisation
 """
 
-def plot_matrix(X, outfile):
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from datetime import datetime
+
+
+def plot_matrix(X, path="", labels=[], labels_sort=False, label_axis=0, label_ticks=False, title="", xlabel="", ylabel="", fontsize=12, cmap=plt.cm.Blues, figsize=None, dpi=None):
 	"""
 	plot matrix
 
-	cf. met-cluster/features.py
+		- example:
+	
+		>>> plot_matrix(X, labels=[range(X.shape[0])], label_axis=2, label_ticks=True, title="square matrix")
+
+	@param X: np.ndarray
+	@param path: path to save image file (default: matrix_timestamp.png)
+	@param labels: list of labels
+	@param labels_sort: sort matrix using a corresponding list of labels, ie. cluster labels. also looks at label_axis to sort quadratic matrices both ways (default: False)
+	@param label_axis: 0 = x axis, 1 = y axis, 2 = both (default: 0)
+	@param label_ticks: tick labels alongside specified axis (default: False)
+	@param title, xlabel, ylabel: plot title, axis label strings
+	@param fontsize: size for all labels, value in points (default: 12)
+	@param cmap: colormap to use (default: plt.cm.Blues)
+	@param figsize: tuple of integers, values in inches (default: None - uses pyplot default values)
+	@param dpi: resolution of the figure (default: None - uses pyplot default values)
 	"""
-	plt.figure(figsize=(80,80))
-	plt.matshow(X, fignum=100, cmap=cm.gray)
-	plt.savefig(outfile, dpi=160)
-	"""
-	alternativ:
+	if not path: path = "matrix_"+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".png"
+	
+	# sort
+	if labels_sort is True:
+		X = X[np.argsort(labels)]
+		if label_axis == 2:
+			X = X[:, np.argsort(labels)]
 
-	plt.title("Original dataset")
-	plt.matshow(X, cmap=plt.cm.Blues)
-	plt.xlabel(sys.argv[1])
-	plt.savefig(outdir+'/data.png', dpi=90)
-	"""
+	# plot
+	plt.figure(figsize=figsize)
+	ax = plt.add_subplot(111)
+	m_ax = ax.matshow(X, cmap=cmap)
+	plt.colorbar(m_ax)
+	plt.title(title, fontsize=fontsize)
+	plt.xlabel(xlabel, fontsize=fontsize)
+	plt.ylabel(xlabel, fontsize=fontsize)
 
+	if labels and label_axis == 0: ax.set_xticklabels([''] + labels)
+	if labels and label_axis == 1: ax.set_yticklabels([''] + labels)
+	if labels and label_axis == 2:
+		ax.set_xticklabels([''] + labels)
+		ax.set_yticklabels([''] + labels)
 
-def plot_matrix_sorted(W, B, clust_labels, outfile):
-	"""
-	plot matrix sorted by clustering + silhouette-coefficient
+	ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+	ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
 
-	cf. met-cluster/cluster.py
-	"""
-	# http://scikit-learn.org/stable/modules/clustering.html#silhouette-coefficient
-	# The score is bounded between -1 for incorrect clustering and +1 for highly dense clustering.
-	# Scores around zero indicate overlapping clusters. The score is higher when clusters are dense
-	# and well separated, which relates to a standard concept of a cluster.
-	score = metrics.silhouette_score(W, np.asarray(clust_labels), metric='precomputed')     # 2015 ergebnisse waren mit 'cosine'
-
-	# sort original data by cluster labels
-	fit_data = W[np.argsort(clust_labels)]
-	fit_data = fit_data[:, np.argsort(clust_labels)]
-
-	# plot matrix
-	plt.figure(figsize=(80,80))
-	plt.matshow(fit_data, fignum=100, cmap=plt.cm.Blues)
-	plt.xlabel('clusters: '+str(B.shape[1])+'\nsilhouette score: '+str(score), fontsize=12)
-	plt.savefig(outfile, dpi=160)
-
-	"""
-	alternativ:
-
-	# spectral bi+coclustering: arrange to show checkerboard structure
-	plt.matshow(np.outer(np.sort(model.row_labels_) + 1, np.sort(model.column_labels_) + 1), cmap=plt.cm.Blues)
-	plt.title("Checkerboard structure of rearranged data")
-	"""
+	plt.savefig(path, dpi=dpi)
 
 
 def plot_graph(G, labels, fileout):
@@ -373,7 +378,7 @@ def matrix_dendrogram(X, outfile):
 	"""
 	cf. met-cluster/cluster.py
 	"""
-	
+
 	"""
 	# scipy agg matrix plot
 

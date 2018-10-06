@@ -5,12 +5,18 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
 
 ## todo
 
-- docstrings schreiben
-- neue komponenten
-    - **bzgl. diss refactoring**: eine klasse für integrierten zugriff auf daten+metadaten der diss-korpora
-    - platzhalter-funktionen aus code fundus: docstrings inkl. beschreibung + links
-    - preprocessing methoden der klassen könnten tlw. durch eine korpus-klasse ersetzt werden
-        - das könnte allerdings auch gegen die lesbarkeit gehen weil sehr viele optionen für eine klasse
+- **bzgl. diss refactoring**: eine klasse für integrierten zugriff auf daten+metadaten der diss-korpora
+- platzhalter-funktionen aus code fundus: docstrings inkl. beschreibung + links
+- preprocessing methoden der klassen könnten tlw. durch eine korpus-klasse ersetzt werden
+    - das könnte allerdings auch gegen die lesbarkeit gehen weil sehr viele optionen für eine klasse
+- metadata management
+   - als doc_labels vorhanden (= filename + doc id)
+   - andere quellen: dataframe/excel tabellen ?
+   - datatype: dict ? -> vgl. funktionen fuer diss-korpora
+- evtl. anderes lda einbinden: https://github.com/lda-project/lda (mit gibbs sampling)
+- unklar bzgl. authorship clf:
+   - preproc erstellt list of docs + y pro doc
+   - preproc_stylome erstellt list of features + y pro feature -> auch in docs zusammenfassen?
 
 ## docset workflow
 
