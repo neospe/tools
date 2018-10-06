@@ -162,7 +162,7 @@
 <pre class="py-doctest">
 <span class="py-prompt">&gt;&gt;&gt; </span>plot_matrix(X, labels=[range(X.shape[0])], label_axis=2, label_ticks=True, title=<span class="py-string">"square matrix"</span>)</pre>
   </li>
-</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">X</td><td>np.ndarray</td></tr><tr><td></td><td class="fieldArg">path</td><td>path to save image file (default: matrix_timestamp.png)</td></tr><tr><td></td><td class="fieldArg">labels</td><td>list of labels</td></tr><tr><td></td><td class="fieldArg">labels_sort</td><td>sort matrix using a corresponding list of labels, ie. cluster labels. also 
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">X</td><td>np.matrix, ndarray, or dataframe</td></tr><tr><td></td><td class="fieldArg">path</td><td>path to save image file (default: matrix_timestamp.png)</td></tr><tr><td></td><td class="fieldArg">labels</td><td>list of labels (optional)</td></tr><tr><td></td><td class="fieldArg">labels_sort</td><td>sort matrix using a corresponding list of labels, ie. cluster labels. also 
 looks at label_axis to sort quadratic matrices both ways (default: False)</td></tr><tr><td></td><td class="fieldArg">label_axis</td><td>0 = x axis, 1 = y axis, 2 = both (default: 0)</td></tr><tr><td></td><td class="fieldArg">label_ticks</td><td>tick labels alongside specified axis (default: False)</td></tr><tr><td></td><td class="fieldArg">title, xlabel, ylabel</td><td>plot title, axis label strings</td></tr><tr><td></td><td class="fieldArg">fontsize</td><td>size for all labels, value in points (default: 12)</td></tr><tr><td></td><td class="fieldArg">cmap</td><td>colormap to use (default: plt.cm.Blues)</td></tr><tr><td></td><td class="fieldArg">figsize</td><td>tuple of integers, values in inches (default: None - uses pyplot default 
 values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the figure (default: None - uses pyplot default values)</td></tr></table></div>
   </div>
@@ -177,14 +177,15 @@ values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the
   <div class="functionHeader">
     
     def
-    plot_graph(G, labels, fileout):
+    plot_graph(G, path='', labels=[], layout='spring', node_size=20, node_color='blue', alpha=0.3, font_color='k', figsize=None, dpi=None):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div><p>plot networkx graph</p>
-<p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+    <div><p>plot networkx graph</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">G</td><td>networkx graph, or: np.matrix, np.ndarray, dataframe</td></tr><tr><td></td><td class="fieldArg">path</td><td>path to save image file (default: graph_timestamp.png)</td></tr><tr><td></td><td class="fieldArg">labels</td><td>list of labels (optional)</td></tr><tr><td></td><td class="fieldArg">layout</td><td>layout algorithm to use, "spring", "shell", or 
+"circular" (default: "spring")</td></tr><tr><td></td><td class="fieldArg">node_size</td><td>size of nodes (default: 20)</td></tr><tr><td></td><td class="fieldArg">node_color</td><td>color of nodes (default: "blue")</td></tr><tr><td></td><td class="fieldArg">alpha</td><td>transparency of nodes (default: 0.3)</td></tr><tr><td></td><td class="fieldArg">font_color</td><td>font color (default: "k" = black)</td></tr><tr><td></td><td class="fieldArg">figsize</td><td>tuple of integers, values in inches (default: None - uses pyplot default 
+values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the figure (default: None - uses pyplot default values)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -197,14 +198,14 @@ values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the
   <div class="functionHeader">
     
     def
-    plot_bi_graph(B, labels, fileout):
+    plot_bi_graph(B, path='', labels=[], figsize=None, dpi=None):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div><p>plot networkx bipartite graph</p>
-<p>cf. met-cluster/cluster.py</p><table class="fieldTable"></table></div>
+    <div><p>plot networkx bipartite graph</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">B</td><td>networkx bigraph</td></tr><tr><td></td><td class="fieldArg">path</td><td>path to save image file (default: bigraph_timestamp.png)</td></tr><tr><td></td><td class="fieldArg">labels</td><td>list of labels (optional)</td></tr><tr><td></td><td class="fieldArg">figsize</td><td>tuple of integers, values in inches (default: None - uses pyplot default 
+values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the figure (default: None - uses pyplot default values)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -478,7 +479,7 @@ values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-10-06 16:47:58.
+        <a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-10-06 17:48:14.
       </address>
 
     </div>

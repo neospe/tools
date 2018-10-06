@@ -3,6 +3,8 @@ visualisation
 """
 
 import numpy as np
+import pandas as pd
+import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from datetime import datetime
@@ -16,9 +18,9 @@ def plot_matrix(X, path="", labels=[], labels_sort=False, label_axis=0, label_ti
 	
 		>>> plot_matrix(X, labels=[range(X.shape[0])], label_axis=2, label_ticks=True, title="square matrix")
 
-	@param X: np.ndarray
+	@param X: np.matrix, ndarray, or dataframe
 	@param path: path to save image file (default: matrix_timestamp.png)
-	@param labels: list of labels
+	@param labels: list of labels (optional)
 	@param labels_sort: sort matrix using a corresponding list of labels, ie. cluster labels. also looks at label_axis to sort quadratic matrices both ways (default: False)
 	@param label_axis: 0 = x axis, 1 = y axis, 2 = both (default: 0)
 	@param label_ticks: tick labels alongside specified axis (default: False)
@@ -28,6 +30,7 @@ def plot_matrix(X, path="", labels=[], labels_sort=False, label_axis=0, label_ti
 	@param figsize: tuple of integers, values in inches (default: None - uses pyplot default values)
 	@param dpi: resolution of the figure (default: None - uses pyplot default values)
 	"""
+	if isinstance(X, pd.DataFrame): X = X.values()
 	if not path: path = "matrix_"+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".png"
 	
 	# sort
@@ -57,47 +60,64 @@ def plot_matrix(X, path="", labels=[], labels_sort=False, label_axis=0, label_ti
 	plt.savefig(path, dpi=dpi)
 
 
-def plot_graph(G, labels, fileout):
+def plot_graph(G, path="", labels=[], layout="spring", node_size=20, node_color="blue", alpha=0.3, font_color="k", figsize=None, dpi=None):
 	"""
 	plot networkx graph
 
-	cf. met-cluster/cluster.py
+	@param G: networkx graph, or: np.matrix, np.ndarray, dataframe
+	@param path: path to save image file (default: graph_timestamp.png)
+	@param labels: list of labels (optional)
+	@param layout: layout algorithm to use, "spring", "shell", or "circular" (default: "spring")
+	@param node_size: size of nodes (default: 20)
+	@param node_color: color of nodes (default: "blue")
+	@param alpha: transparency of nodes (default: 0.3)
+	@param font_color: font color (default: "k" = black)
+	@param figsize: tuple of integers, values in inches (default: None - uses pyplot default values)
+	@param dpi: resolution of the figure (default: None - uses pyplot default values)
 	"""
-	plt.figure(figsize=(80,80))
-	pos = nx.spring_layout(G, k=0.2, iterations=100)   #, scale=10.0)
-	#pos = nx.shell_layout(G)
-	#pos = nx.circular_layout(G)
-	nx.draw(G, pos, node_size=20, alpha=0.3, node_color='blue', with_labels=True)
-	#nx.draw_networkx_labels(G, pos, labels=labels, font_color='g')
-	plt.savefig(fileout, dpi=160)
-	"""
-	alternativ:
+	if isinstance(G, pd.DataFrame): G = nx.from_pandas_dataframe(G)
+	if isinstance(G, np.matrix) or isinstance(G, np.ndarray): G = nx.from_numpy_matrix(np.matrix(G))
+	
+	# TODO check parameter: G = nx.from_pandas_dataframe(sim, '0', '1', edge_attr='2')
 
-	G = nx.from_pandas_dataframe(sim, '0', '1', edge_attr='2')
-	#G_bi = nx.make_clique_bipartite(G)
+	if not path: path = "graph_"+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".png"
 
-	plt.figure(figsize=(30,30))
-	pos = nx.spring_layout(G_bi)
-	nx.draw(G, pos, node_size=20, alpha=0.1, node_color='blue', with_labels=False)
-	nx.draw_networkx_labels(G,pos,font_color='g')
-	plt.savefig('graph.png')
-	"""
+	plt.figure(figsize=figsize)
+
+	if layout is "spring": pos = nx.spring_layout(G, k=0.2, iterations=100)  #, scale=10.0)
+	if layout is "shell": pos = nx.shell_layout(G)
+	if layout is "circular": pos = nx.circular_layout(G)
+
+	if labels:
+		nx.draw(G, pos, node_size=node_size, alpha=alpha, node_color=node_color, with_labels=True)
+		nx.draw_networkx_labels(G, pos, labels=labels, font_color=font_color)
+	else:
+		nx.draw(G, pos, node_size=node_size, alpha=alpha, node_color=node_color, with_labels=False)
+	
+	plt.savefig(path, dpi=dpi)
 
 
-def plot_bi_graph(B, labels, fileout):
+def plot_bigraph(B, path="", labels=[], figsize=None, dpi=None):
 	"""
 	plot networkx bipartite graph
 
-	cf. met-cluster/cluster.py
+	@param B: networkx bigraph
+	@param path: path to save image file (default: bigraph_timestamp.png)
+	@param labels: list of labels (optional)
+	@param figsize: tuple of integers, values in inches (default: None - uses pyplot default values)
+	@param dpi: resolution of the figure (default: None - uses pyplot default values)
 	"""
+	if not path: path = "bigraph_"+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".png"
+
 	X, Y = nx.bipartite.sets(B)
-	plt.figure(figsize=(12,12))
+	plt.figure(figsize=figsize)
 	pos = dict()
 	pos.update( (n, (1, i+20)) for i, n in enumerate(X) ) # put nodes from X at x=1
 	pos.update( (n, (2, i+20)) for i, n in enumerate(Y) ) # put nodes from Y at x=2
 	nx.draw_networkx(B, pos=pos, node_size=70, font_size=10, alpha=0.5, width=0.1)
-	#nx.draw_networkx_labels(B, pos, labels=labels, font_color='g')
-	plt.savefig(fileout, dpi=160)
+	if labels: nx.draw_networkx_labels(B, pos, labels=labels, font_color='g')
+	
+	plt.savefig(path, dpi=dpi)
 
 
 def plot_histogram(years):
@@ -138,7 +158,7 @@ def plot_histogram(years):
 	plt.savefig('works-genre.png', dpi=80)
 
 	"""
-	fuer diskrete daten:
+	fuer diskrete daten (no binning):
 
 	data = pd.DataFrame.from_dict(data=Counter(count), orient='index')
 	#data = data.sort_index()
