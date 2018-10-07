@@ -60,26 +60,23 @@ def plot_matrix(X, path="", labels=[], labels_sort=False, label_axis=0, label_ti
 	plt.savefig(path, dpi=dpi)
 
 
-def plot_graph(G, path="", labels=[], layout="spring", node_size=20, node_color="blue", alpha=0.3, font_color="k", figsize=None, dpi=None):
+def plot_graph(G, path="", labels=[], layout="spring", node_size=20, node_color="blue", alpha=0.5, width=0.5, font_size=10, font_color="k", figsize=None, dpi=None):
 	"""
 	plot networkx graph
 
-	@param G: networkx graph, or: np.matrix, np.ndarray, dataframe
+	@param G: networkx graph
 	@param path: path to save image file (default: graph_timestamp.png)
 	@param labels: list of labels (optional)
 	@param layout: layout algorithm to use, "spring", "shell", or "circular" (default: "spring")
 	@param node_size: size of nodes (default: 20)
 	@param node_color: color of nodes (default: "blue")
-	@param alpha: transparency of nodes (default: 0.3)
+	@param alpha: transparency of nodes (default: 0.5)
+	@param width: line width of edges (default: 0.5)
+	@param font_size: font size (default: 10)
 	@param font_color: font color (default: "k" = black)
 	@param figsize: tuple of integers, values in inches (default: None - uses pyplot default values)
 	@param dpi: resolution of the figure (default: None - uses pyplot default values)
 	"""
-	if isinstance(G, pd.DataFrame): G = nx.from_pandas_dataframe(G)
-	if isinstance(G, np.matrix) or isinstance(G, np.ndarray): G = nx.from_numpy_matrix(np.matrix(G))
-	
-	# TODO check parameter: G = nx.from_pandas_dataframe(sim, '0', '1', edge_attr='2')
-
 	if not path: path = "graph_"+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".png"
 
 	plt.figure(figsize=figsize)
@@ -89,21 +86,27 @@ def plot_graph(G, path="", labels=[], layout="spring", node_size=20, node_color=
 	if layout is "circular": pos = nx.circular_layout(G)
 
 	if labels:
-		nx.draw(G, pos, node_size=node_size, alpha=alpha, node_color=node_color, with_labels=True)
-		nx.draw_networkx_labels(G, pos, labels=labels, font_color=font_color)
+		nx.draw(G, pos=pos, node_size=node_size, node_color=node_color, alpha=alpha, width=width, with_labels=True)
+		nx.draw_networkx_labels(G, pos, labels=labels, font_size=font_size, font_color=font_color)
 	else:
-		nx.draw(G, pos, node_size=node_size, alpha=alpha, node_color=node_color, with_labels=False)
+		nx.draw(G, pos=pos, node_size=node_size, node_color=node_color, alpha=alpha, width=width, with_labels=False)
 	
 	plt.savefig(path, dpi=dpi)
 
 
-def plot_bigraph(B, path="", labels=[], figsize=None, dpi=None):
+def plot_bigraph(B, path="", labels=[], node_size=20, node_color="blue", alpha=0.5, width=0.5, font_size=10, font_color="k", figsize=None, dpi=None):
 	"""
 	plot networkx bipartite graph
 
 	@param B: networkx bigraph
 	@param path: path to save image file (default: bigraph_timestamp.png)
 	@param labels: list of labels (optional)
+	@param node_size: size of nodes (default: 20)
+	@param node_color: color of nodes (default: "blue")
+	@param alpha: transparency of nodes (default: 0.5)
+	@param width: line width of edges (default: 0.5)
+	@param font_size: font size (default: 10)
+	@param font_color: font color (default: "k" = black)
 	@param figsize: tuple of integers, values in inches (default: None - uses pyplot default values)
 	@param dpi: resolution of the figure (default: None - uses pyplot default values)
 	"""
@@ -114,18 +117,21 @@ def plot_bigraph(B, path="", labels=[], figsize=None, dpi=None):
 	pos = dict()
 	pos.update( (n, (1, i+20)) for i, n in enumerate(X) ) # put nodes from X at x=1
 	pos.update( (n, (2, i+20)) for i, n in enumerate(Y) ) # put nodes from Y at x=2
-	nx.draw_networkx(B, pos=pos, node_size=70, font_size=10, alpha=0.5, width=0.1)
-	if labels: nx.draw_networkx_labels(B, pos, labels=labels, font_color='g')
+	nx.draw(B, pos=pos, node_size=node_size, node_color=node_color, alpha=alpha, width=width)
+	if labels: nx.draw_networkx_labels(B, pos, labels=labels, font_size=font_size, font_color=font_color)
 	
 	plt.savefig(path, dpi=dpi)
 
 
-def plot_histogram(years):
+def plot_histogram(data, path, bin=False):
 	"""
 	plot histogram
 
 	cf. met-cluster/corpus.py
 	"""
+	# if isinstance(data, list):
+
+
 	data = pd.DataFrame.from_dict(data=Counter(years), orient='index')
 	#data = data.sort_index(ascending=False)
 	#data.sort_values(0, axis='index', ascending=False, inplace=True)
