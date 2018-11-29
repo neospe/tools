@@ -4,6 +4,7 @@ visualisation
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -62,7 +63,7 @@ def plot_matrix(X, path="", labels=[], labels_sort=False, label_axis=0, label_ti
 
 def plot_graph(G, path="", labels=[], layout="spring", node_size=20, node_color="blue", alpha=0.5, width=0.5, font_size=10, font_color="k", figsize=None, dpi=None):
 	"""
-	plot networkx graph
+	plot graph
 
 	@param G: networkx graph
 	@param path: path to save image file (default: graph_timestamp.png)
@@ -96,7 +97,7 @@ def plot_graph(G, path="", labels=[], layout="spring", node_size=20, node_color=
 
 def plot_bigraph(B, path="", labels=[], node_size=20, node_color="blue", alpha=0.5, width=0.5, font_size=10, font_color="k", figsize=None, dpi=None):
 	"""
-	plot networkx bipartite graph
+	plot bipartite graph
 
 	@param B: networkx bigraph
 	@param path: path to save image file (default: bigraph_timestamp.png)
@@ -123,61 +124,93 @@ def plot_bigraph(B, path="", labels=[], node_size=20, node_color="blue", alpha=0
 	plt.savefig(path, dpi=dpi)
 
 
-def plot_histogram(data, path, bin=False):
+def plot_categorical(data, path="", kind="strip", palette="bright", bin=False, num_bin=5, title="", xlabel="", ylabel="", fontsize=12, figsize=None, dpi=None):
 	"""
-	plot histogram
+	plot categorical data
 
-	cf. met-cluster/corpus.py
+		- cf. https://seaborn.pydata.org/tutorial/categorical.html
+
+	@param data: list of values (will be counted automatically) or np.ndarray, np.matrix, dataframe
+	@param path: path to save image file (default: categorical_timestamp.png)
+	@param kind: "strip" (default), "swarm", "box", "violin", "boxen", "point", "bar", "count"
+	@param palette: "deep", "muted", "bright" (default), "pastel", "dark", "colorblind"
+	@param bin: bin data (default: False)
+	@param num_bin: number of bins (default: 5)
+	@param title, xlabel, ylabel: plot title, axis label strings
+	@param fontsize: size for all labels, value in points (default: 12)
+	@param figsize: tuple of integers, values in inches (default: None - uses pyplot default values)
+	@param dpi: resolution of the figure (default: None - uses pyplot default values)
 	"""
-	# if isinstance(data, list):
+	if not path: path = "categorical_"+datetime.now().strftime("%Y-%m-%d_%H-%M-%S")+".png"
 
+	if isinstance(data, list):
+		df = pd.DataFrame.from_dict(data=Counter(data), orient='index')
+	elif isinstance(data, np.ndarray) or isinstance(data, np.matrix):
+		df = pd.DataFrame(np.asarray(data), columns=range(data.shape[1]))
+	elif isinstance(data, pd.DataFrame):
+		df = data
 
-	data = pd.DataFrame.from_dict(data=Counter(years), orient='index')
-	#data = data.sort_index(ascending=False)
-	#data.sort_values(0, axis='index', ascending=False, inplace=True)
-	data.sort_index(inplace=True)
+	df.sort_index(inplace=True)
 
 	# bin dataframe
-	data['year'] = data.index.astype(int)
-	bins = np.arange(1800, 1950, 10)
-	labels = [str(i) for i in np.arange(1800, 1940, 10)]
+	if bin is True:
+		index_orig = df.index.tolist()
 
-	data['bin'] = pd.cut(data['year'], bins=bins, labels=labels, include_lowest=True)
-	data['bin'] = data['bin'].astype(int)
+		# TODO: list -> df column assignment checken
+		df['index'] = enumerate(index_orig, start=1)
 
-	grouped = data.groupby('bin')
-	#data = grouped.agg(np.sum)     # TypeError: unorderable types: str() < int()
+		bins = np.arange(0, len(index_orig), len(index_orig) / num_bin)
+		labels = [str(index_orig[i]) for i in bins]
+		# TODO: label für jeden bin als range: "orig_label1 - orig_label2"
 
-	# alternativ zu agg()
-	size_per_bin = {}
-	for g, sizes in grouped: size_per_bin[g] = sizes[0].sum()
-	data = pd.DataFrame.from_dict(data=size_per_bin, orient='index')
+		df['bin'] = pd.cut(df['index'], bins=bins, labels=labels, include_lowest=True)
+		df['bin'] = df['bin'].astype(int)
 
-	data.sort_index(inplace=True)
+		grouped = df.groupby('bin')
+		#df = grouped.agg(np.sum)     # TypeError: unorderable types: str() < int()
+
+		# alternativ zu agg()
+		size_per_bin = {}
+		for g, sizes in grouped: size_per_bin[g] = sizes[0].sum()
+		df = pd.DataFrame.from_dict(data=size_per_bin, orient='index')
+
+		df.sort_index(inplace=True)
+
+	# TODO: funktion catplot
+	# argumente: kind, palette + labels = kategorien
 
 	# plot
 	plt.figure()
-	ax = sns.barplot(data=data.T, orient='h', palette='PuBuGn_d')  # data=data[:25].T
+	ax = sns.barplot(data=df.T, orient='h', palette='PuBuGn_d')  # df=df[:25].T
 	ax.set_title('Novels by creation date')
-	ax.set(xlabel=str(data[0].sum())+' works total\n'+format_number(tok_count)+' tokens', ylabel='')
+	ax.set(xlabel=str(df[0].sum())+' works total\n'+format_number(tok_count)+' tokens', ylabel='')
 
 	plt.savefig('works-genre.png', dpi=80)
 
 	"""
 	fuer diskrete daten (no binning):
 
-	data = pd.DataFrame.from_dict(data=Counter(count), orient='index')
-	#data = data.sort_index()
-	data.sort_values(0, axis='index', ascending=False, inplace=True)
-	#data.columns = ['']
+	df = pd.DataFrame.from_dict(data=Counter(data), orient='index')
+	#df = df.sort_index()
+	df.sort_values(0, axis='index', ascending=False, inplace=True)
+	#df.columns = ['']
 
 	plt.figure()
 	plt.tick_params(axis='both', which='major', labelsize=15)
-	#data.plot.pie(figsize=(6, 6), subplots=True, colormap='Blues')
-	ax = sns.barplot(data=data.T, orient='h', palette='PuBuGn_d')  # data=data[:25].T
+	#df.plot.pie(figsize=(6, 6), subplots=True, colormap='Blues')
+	ax = sns.barplot(data=df.T, orient='h', palette='PuBuGn_d')  # df=df[:25].T
 	ax.set_title('top features')
 	plt.savefig(result_path+'/'+result_file[:-4]+'_topfeat.png', dpi=80)
 	"""
+
+
+def plot_continuous():
+	"""
+	plot continuous data
+
+	cf. https://seaborn.pydata.org/tutorial/distributions.html
+	"""
+
 
 
 def plot_dendrogram(X, outfile):
@@ -454,3 +487,7 @@ def matrix_dendrogram(X, outfile):
 	fig.show()
 	fig.savefig('out/matrix_dendro.png', dpi=160)
 	"""
+
+
+if __name__ == '__main__':
+	print("not specified")

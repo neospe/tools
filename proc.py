@@ -489,16 +489,21 @@ class SemanticModel:
 		self.doc_labels = []  # metadata
 		self.info = []  # take note of model parameters
 
-	def preproc(self, doc_split=False, doc_size=1000, type_filter=True, freq_filter=False, freq_threshold=0.0001, freq_min=1, stopword_filter=False, stopword_path="stopwords.txt", pos_filter=False, pos_tags=["ADJ", "NN", "V"], pos_column="CPOS"):
+	def preproc(self, doc_split=False, doc_size=1000, type_filter=True, freq_filter=False, freq_threshold=0.0001, freq_min=1, stopword_filter=False, stopword_path="stopwords.txt", pos_filter=False, pos_tags=[], pos_column="CPOS"):
 		"""
 		preprocessing
 
-		@param doc_size: slice input into documents of doc_size words (default: 1000)
+		@param doc_split: slice input into documents of doc_size (default: False)
+		@param doc_size: size of documents in words (default: 1000)
 		@param type_filter: use types only (expects "Lemma" column, default: True)
-		@param freq_threshold: percentage of vocabulary to prune, top and bottom (default: 0.0001)
+		@param freq_filter: prune vocabulary by frequency (default: False)
+		@param freq_threshold: prune top and bottom by threshold percentage (default: 0.0001)
 		@param freq_min: minimum number of occurences for a word to be included (default: 1)
-		@param stopword_path: path to stopwords in plaintext file
-		@param pos_tags: list of str, use only these POS tags
+		@param stopword_filter: exclude stopwords (default: False)
+		@param stopword_path: path to plaintext file containing stopwords (default: "stopwords.txt")
+		@param pos_filter: use only specified POS tags (default: False)
+		@param pos_tags: list of str (e.g. ["ADJ", "NN", "V"])
+		@param pos_column: column to filter (default: "CPOS")
 		"""
 		self.doc_split = doc_split
 		self.doc_size = doc_size
@@ -1124,3 +1129,7 @@ class TFIDFSentenceClassifier:
 		tmp_dict = load_pkl(path)
 		self.__dict__.clear()
 		self.__dict__.update(tmp_dict)
+
+
+if __name__ == '__main__':
+	print("not specified")

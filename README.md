@@ -5,32 +5,43 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
 
 ## todo
 
-- **bzgl. diss refactoring**: eine klasse für integrierten zugriff auf daten+metadaten der diss-korpora
-- platzhalter-funktionen aus code fundus: docstrings inkl. beschreibung + links
-- preprocessing methoden der klassen könnten tlw. durch eine korpus-klasse ersetzt werden
-    - das könnte allerdings auch gegen die lesbarkeit gehen weil sehr viele optionen für eine klasse
-- metadata management
-   - als doc_labels vorhanden (= filename + doc id)
-   - andere quellen: dataframe/excel tabellen ?
-   - datatype: dict ? -> vgl. funktionen fuer diss-korpora
-- evtl. anderes lda einbinden: https://github.com/lda-project/lda (mit gibbs sampling)
+- **bzgl. diss refactoring**
+    - eine klasse für integrierten zugriff auf daten+metadaten der diss-korpora
+    - preprocessing methoden der klassen könnten tlw. durch eine korpus-klasse ersetzt werden
+        - das könnte allerdings auch gegen die lesbarkeit gehen weil sehr viele optionen für eine klasse
+    - metadata management
+       - vorhanden: doc_labels (= filename + doc id)
+       - andere quellen: dataframe/excel tabellen ?
+       - datatype für alles: dict ? -> vgl. funktionen für diss-korpora
+- **neue funktionen**
+    - r-gram preprocessing
+        - vgl. _Ekgren et al. - R-grams. Unsupervised Learning of Semantic Units in Natural Language.pdf_
+        - vgl. https://github.com/google/sentencepiece
+    - zweites lda einbinden: https://github.com/lda-project/lda (mit gibbs sampling)
+    - platzhalter
+        - aus code fundus/ml/: grid search, feature selection, model interpretation, probabilistic models
+        - docstrings inkl. beschreibung + links
 - unklar bzgl. authorship clf:
    - preproc erstellt list of docs + y pro doc
    - preproc_stylome erstellt list of features + y pro feature -> auch in docs zusammenfassen?
 
 ## docset workflow
 
-- in bash + python 2.7: _source activate py2_
-- pydoctor (https://launchpad.net/pydoctor):
-    - install: _pip install pydoctor_
-        - edit template: ~/miniconda3/envs/py2/lib/python2.7/site-packages/pydoctor/templates/common.html
-            - remove div id="showPrivate"
+- workflow
+    - _conda activate py2_
     - _pydoctor --add-package path-to-package_
-        - docstrings in epytext format (http://epydoc.sourceforge.net/manual-epytext.html, http://epydoc.sourceforge.net/fields.html)
-- doc2dash (https://pypi.org/project/doc2dash):
-    - install: _conda install --channel "conda-forge" doc2dash_
     - _doc2dash path-to-apidocs_
-- anm: package files müssen ohne fehler ausführbar sein, sonst wird keine dokumentation generiert
+    - anm: .py files müssen ohne fehler ausführbar sein, sonst wird keine dokumentation generiert
+- docstring format
+    - epytext: http://epydoc.sourceforge.net/manual-epytext.html, http://epydoc.sourceforge.net/fields.html
+- install
+    - _conda create -n py2 python=2.7_
+    - _conda activate py2_
+    - pydoctor (https://launchpad.net/pydoctor): _pip install pydoctor_
+    - doc2dash (https://pypi.org/project/doc2dash): _conda install --channel "conda-forge" doc2dash_
+    - edit pydoctor template
+        - ~/miniconda3/envs/py2/lib/python2.7/site-packages/pydoctor/templates/common.html
+        - remove: div id="showPrivate"
 
 ## index
 
@@ -62,16 +73,17 @@ eine sammlung von funktionen, die der erinnerung an oft-, wenig- und noch-nicht-
     - met-sampler/classify.py, tfidf_classify: clf, df, str -> bool * 
     - neu: gensim word2vec, fasttext * 
 - vis
-    - met-cluster/features.py, plot_matrix: np array -> img
+    - met-cluster/features.py, plot_matrix: np array -> img * 
     - word embedding/doc2vec.py: model -> tsne, cluster
     - word embedding/lsa.py: model -> tsne, cluster
     - topic modeling/lda_heatmap.py: model -> sort -> img
     - topic modeling/lda_network.py: model -> nx graph -> img
+        - evtl. als output methode zur semanticmodel klasse
     - van halteren/vh_tutorial.py: clf decision surfaces -> img
-    - met-cluster/cluster.py, plot_graph, plot_bi_graph: nx graph, labels -> img
-    - met-cluster/cluster.py, plot_matrix_sorted: np array, labels -> img
+    - met-cluster/cluster.py, plot_graph, plot_bi_graph: nx graph, labels -> img * 
+    - met-cluster/cluster.py, plot_matrix_sorted: np array, labels -> img * 
     - met-cluster/cluster.py, weiter unten: dendrogramm etc.
-    - met-cluster/corpus.py, plot_docs_years: years list -> img
+    - met-cluster/corpus.py, plot_docs_years: years list -> img * 
 - misc (-> nach io?)
     - helper/doc_split.py: txt -> txt dir
     - met-cluster/corpus.py, select_romankorpus: pkl dir, metadaten -> paths list, years list

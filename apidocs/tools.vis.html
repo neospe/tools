@@ -53,17 +53,22 @@
     
     <td>Function</td>
     <td><a href="tools.vis.html#plot_graph" data-type="Function" class="code">plot_graph</a></td>
-    <td><span>plot networkx graph</span></td>
+    <td><span>plot graph</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
-    <td><a href="tools.vis.html#plot_bi_graph" data-type="Function" class="code">plot_bi_graph</a></td>
-    <td><span>plot networkx bipartite graph</span></td>
+    <td><a href="tools.vis.html#plot_bigraph" data-type="Function" class="code">plot_bigraph</a></td>
+    <td><span>plot bipartite graph</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
-    <td><a href="tools.vis.html#plot_histogram" data-type="Function" class="code">plot_histogram</a></td>
-    <td><span>plot histogram</span></td>
+    <td><a href="tools.vis.html#plot_categorical" data-type="Function" class="code">plot_categorical</a></td>
+    <td><span>plot categorical data</span></td>
+  </tr><tr class="function">
+    
+    <td>Function</td>
+    <td><a href="tools.vis.html#plot_continuous" data-type="Function" class="code">plot_continuous</a></td>
+    <td><span>plot continuous data</span></td>
   </tr><tr class="function">
     
     <td>Function</td>
@@ -177,55 +182,84 @@ values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the
   <div class="functionHeader">
     
     def
-    plot_graph(G, path='', labels=[], layout='spring', node_size=20, node_color='blue', alpha=0.3, font_color='k', figsize=None, dpi=None):
+    plot_graph(G, path='', labels=[], layout='spring', node_size=20, node_color='blue', alpha=0.5, width=0.5, font_size=10, font_color='k', figsize=None, dpi=None):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div><p>plot networkx graph</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">G</td><td>networkx graph, or: np.matrix, np.ndarray, dataframe</td></tr><tr><td></td><td class="fieldArg">path</td><td>path to save image file (default: graph_timestamp.png)</td></tr><tr><td></td><td class="fieldArg">labels</td><td>list of labels (optional)</td></tr><tr><td></td><td class="fieldArg">layout</td><td>layout algorithm to use, "spring", "shell", or 
-"circular" (default: "spring")</td></tr><tr><td></td><td class="fieldArg">node_size</td><td>size of nodes (default: 20)</td></tr><tr><td></td><td class="fieldArg">node_color</td><td>color of nodes (default: "blue")</td></tr><tr><td></td><td class="fieldArg">alpha</td><td>transparency of nodes (default: 0.3)</td></tr><tr><td></td><td class="fieldArg">font_color</td><td>font color (default: "k" = black)</td></tr><tr><td></td><td class="fieldArg">figsize</td><td>tuple of integers, values in inches (default: None - uses pyplot default 
+    <div><p>plot graph</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">G</td><td>networkx graph</td></tr><tr><td></td><td class="fieldArg">path</td><td>path to save image file (default: graph_timestamp.png)</td></tr><tr><td></td><td class="fieldArg">labels</td><td>list of labels (optional)</td></tr><tr><td></td><td class="fieldArg">layout</td><td>layout algorithm to use, "spring", "shell", or 
+"circular" (default: "spring")</td></tr><tr><td></td><td class="fieldArg">node_size</td><td>size of nodes (default: 20)</td></tr><tr><td></td><td class="fieldArg">node_color</td><td>color of nodes (default: "blue")</td></tr><tr><td></td><td class="fieldArg">alpha</td><td>transparency of nodes (default: 0.5)</td></tr><tr><td></td><td class="fieldArg">width</td><td>line width of edges (default: 0.5)</td></tr><tr><td></td><td class="fieldArg">font_size</td><td>font size (default: 10)</td></tr><tr><td></td><td class="fieldArg">font_color</td><td>font color (default: "k" = black)</td></tr><tr><td></td><td class="fieldArg">figsize</td><td>tuple of integers, values in inches (default: None - uses pyplot default 
 values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the figure (default: None - uses pyplot default values)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
-  <a name="tools.vis.plot_bi_graph">
+  <a name="tools.vis.plot_bigraph">
     
   </a>
-  <a name="plot_bi_graph">
+  <a name="plot_bigraph">
     
   </a>
   <div class="functionHeader">
     
     def
-    plot_bi_graph(B, path='', labels=[], figsize=None, dpi=None):
+    plot_bigraph(B, path='', labels=[], node_size=20, node_color='blue', alpha=0.5, width=0.5, font_size=10, font_color='k', figsize=None, dpi=None):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div><p>plot networkx bipartite graph</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">B</td><td>networkx bigraph</td></tr><tr><td></td><td class="fieldArg">path</td><td>path to save image file (default: bigraph_timestamp.png)</td></tr><tr><td></td><td class="fieldArg">labels</td><td>list of labels (optional)</td></tr><tr><td></td><td class="fieldArg">figsize</td><td>tuple of integers, values in inches (default: None - uses pyplot default 
+    <div><p>plot bipartite graph</p><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">B</td><td>networkx bigraph</td></tr><tr><td></td><td class="fieldArg">path</td><td>path to save image file (default: bigraph_timestamp.png)</td></tr><tr><td></td><td class="fieldArg">labels</td><td>list of labels (optional)</td></tr><tr><td></td><td class="fieldArg">node_size</td><td>size of nodes (default: 20)</td></tr><tr><td></td><td class="fieldArg">node_color</td><td>color of nodes (default: "blue")</td></tr><tr><td></td><td class="fieldArg">alpha</td><td>transparency of nodes (default: 0.5)</td></tr><tr><td></td><td class="fieldArg">width</td><td>line width of edges (default: 0.5)</td></tr><tr><td></td><td class="fieldArg">font_size</td><td>font size (default: 10)</td></tr><tr><td></td><td class="fieldArg">font_color</td><td>font color (default: "k" = black)</td></tr><tr><td></td><td class="fieldArg">figsize</td><td>tuple of integers, values in inches (default: None - uses pyplot default 
 values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the figure (default: None - uses pyplot default values)</td></tr></table></div>
   </div>
 </div><div class="basefunction">
   
-  <a name="tools.vis.plot_histogram">
+  <a name="tools.vis.plot_categorical">
     
   </a>
-  <a name="plot_histogram">
+  <a name="plot_categorical">
     
   </a>
   <div class="functionHeader">
     
     def
-    plot_histogram(years):
+    plot_categorical(data, path='', kind='strip', palette='bright', bin=False, num_bin=5, title='', xlabel='', ylabel='', fontsize=12, figsize=None, dpi=None):
     
   </div>
   <div class="docstring functionBody">
     
     
-    <div><p>plot histogram</p>
-<p>cf. met-cluster/corpus.py</p><table class="fieldTable"></table></div>
+    <div><p>plot categorical data</p>
+<ul>
+  <li>
+    cf. https://seaborn.pydata.org/tutorial/categorical.html
+  </li>
+</ul><table class="fieldTable"><tr class="fieldStart"><td class="fieldName">Parameters</td><td class="fieldArg">data</td><td>list of values (will be counted automatically) or np.ndarray, np.matrix, 
+dataframe</td></tr><tr><td></td><td class="fieldArg">path</td><td>path to save image file (default: categorical_timestamp.png)</td></tr><tr><td></td><td class="fieldArg">kind</td><td>"strip" (default), "swarm", "box", 
+"violin", "boxen", "point", "bar", 
+"count"</td></tr><tr><td></td><td class="fieldArg">palette</td><td>"deep", "muted", "bright" (default), 
+"pastel", "dark", "colorblind"</td></tr><tr><td></td><td class="fieldArg">bin</td><td>bin data (default: False)</td></tr><tr><td></td><td class="fieldArg">num_bin</td><td>number of bins (default: 5)</td></tr><tr><td></td><td class="fieldArg">title, xlabel, ylabel</td><td>plot title, axis label strings</td></tr><tr><td></td><td class="fieldArg">fontsize</td><td>size for all labels, value in points (default: 12)</td></tr><tr><td></td><td class="fieldArg">figsize</td><td>tuple of integers, values in inches (default: None - uses pyplot default 
+values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the figure (default: None - uses pyplot default values)</td></tr></table></div>
+  </div>
+</div><div class="basefunction">
+  
+  <a name="tools.vis.plot_continuous">
+    
+  </a>
+  <a name="plot_continuous">
+    
+  </a>
+  <div class="functionHeader">
+    
+    def
+    plot_continuous():
+    
+  </div>
+  <div class="docstring functionBody">
+    
+    
+    <div><p>plot continuous data</p>
+<p>cf. https://seaborn.pydata.org/tutorial/distributions.html</p><table class="fieldTable"></table></div>
   </div>
 </div><div class="basefunction">
   
@@ -479,7 +513,7 @@ values)</td></tr><tr><td></td><td class="fieldArg">dpi</td><td>resolution of the
 
       </div>
       <address>
-        <a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-10-06 17:48:14.
+        <a href="index.html">API Documentation</a> for tools, generated by <a href="https://github.com/twisted/pydoctor/">pydoctor</a> at 2018-11-29 11:17:28.
       </address>
 
     </div>
